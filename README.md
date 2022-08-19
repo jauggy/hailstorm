@@ -16,6 +16,8 @@ The final command `mix beans` will run the Beans program and output the results.
 ## Development and contribution
 Pull requests are welcome, there is [documentation](docs) and in particular an [adding new tests](docs/adding_new_tests.md) document which may be of use.
 
+The Tachyon docs are located [here](https://github.com/beyond-all-reason/teiserver/tree/master/documents/tachyon).
+
 ## TODO
 - Helper functions for website requests/tests
 - More examples: Hosting a battle, Multiple connections at once
