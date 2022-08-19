@@ -2,13 +2,18 @@ defmodule Mix.Tasks.Beans do
   use Mix.Task
   require Logger
 
+  @spec run(list()) :: :ok
   def run(_args) do
     Mix.Task.run("app.start")
     start_time = System.system_time(:millisecond)
 
     Beans.list_tests()
       |> Map.new(fn m ->
-        task = Task.async(fn -> m.perform() end)
+        task = Task.async(fn ->
+          Beans.register_module(m)
+          result = m.perform()
+          Beans.save_result(m, result)
+        end)
 
         {m, task}
       end)

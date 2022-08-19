@@ -13,7 +13,5 @@ mix beans
 
 The final command `mix beans` will run the Beans program and output the results.
 
-## Local development
-Todo:
-- Creating a new test
-- Documentation
+## Development and contribution
+Pull requests are welcome, there is [documentation](docs) and in particular an [adding new tests](docs/adding_new_tests.md) document which may be of use.

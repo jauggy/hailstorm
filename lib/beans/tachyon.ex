@@ -15,7 +15,7 @@ defmodule Beans.Tachyon do
   @spec new_connection(map()) :: {:ok, sslsocket(), map} | {:error, String.t()}
   def new_connection(params) do
     with :ok <- create_user(params),
-      :ok <- update_user(params.email, %{verified: true}),
+      :ok <- update_user(params.email, Map.merge(%{verified: true}, params[:update] || %{})),
       socket <- get_socket(),
       {:ok, user} <- login(socket, params.email)
     do
@@ -26,7 +26,7 @@ defmodule Beans.Tachyon do
   end
 
   @spec get_socket :: sslsocket()
-  def get_socket() do
+  defp get_socket() do
     {:ok, socket} =
       :ssl.connect(
         Application.get_env(:beans, Beans)[:host_socket_url],
@@ -39,7 +39,7 @@ defmodule Beans.Tachyon do
   end
 
   @spec create_user(map()) :: :ok | {:error, String.t()}
-  def create_user(params) do
+  defp create_user(params) do
     url = [
       Application.get_env(:beans, Beans)[:host_api_url],
       "teiserver/api/beans/create_user"
@@ -63,7 +63,7 @@ defmodule Beans.Tachyon do
   end
 
   @spec update_user(String.t(), map()) :: :ok | {:error, String.t()}
-  def update_user(email, params) do
+  defp update_user(email, params) do
     url = [
       Application.get_env(:beans, Beans)[:host_api_url],
       "teiserver/api/beans/ts_update_user"
@@ -88,7 +88,7 @@ defmodule Beans.Tachyon do
   end
 
   @spec login(sslsocket(), Map.t()) :: {:ok, map()} | {:error, String.t()}
-  def login(socket, email) do
+  defp login(socket, email) do
     with {:ok, token} <- get_token(socket, email),
         {:ok, user} <- login_socket(socket, token)
       do
@@ -156,9 +156,9 @@ defmodule Beans.Tachyon do
 
   def tachyon_recv(socket) do
     case recv_raw(socket) do
-      :timeout -> :timeout
+      :timeout -> []
       :closed -> :closed
-      :einval -> :einval
+      :einval -> :closed
 
       resp ->
         resp
@@ -191,25 +191,6 @@ defmodule Beans.Tachyon do
 
       {:error, :timeout} ->
         acc
-    end
-  end
-
-  def translate('OK cmd=TACHYON\n'), do: []
-  def translate('TASSERVER 0.38-33-ga5f3b28 * 8201 0\n'), do: []
-  def translate('TASSERVER 0.38-33-ga5f3b28 * 8201 0\nOK cmd=TACHYON\n'), do: []
-  def translate(raw) do
-    raw
-    |> to_string
-    |> String.split("\n")
-    |> Enum.map(&do_translate/1)
-    |> Enum.filter(fn r -> r != nil end)
-  end
-
-  defp do_translate(""), do: nil
-  defp do_translate(line) do
-    case decode!(line) do
-      %{"cmd" => "s.auth.login"} -> nil
-      msg -> msg
     end
   end
 
@@ -271,6 +252,13 @@ defmodule Beans.Tachyon do
     rescue
       _ ->
         {:error, :gzip_decompress}
+    end
+  end
+
+  defmacro __using__(_opts) do
+    quote do
+      import Beans.Tachyon, only: [tachyon_send: 2, tachyon_recv: 1, tachyon_recv_until: 1, new_connection: 1]
+      alias Beans.Tachyon
     end
   end
 end

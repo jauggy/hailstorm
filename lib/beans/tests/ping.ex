@@ -2,29 +2,25 @@ defmodule Beans.Tests.Ping do
   @moduledoc """
   Tests the Ping command
   """
-  import Beans.Tachyon, only: [tachyon_send: 2, tachyon_recv: 1, new_connection: 1]
+  use Beans.Tachyon
 
   @ping_user_params %{
     email: "ping",
-    name: "ping",
+    name: "ping"
   }
 
-  @spec perform :: nil | :ok
+  @spec perform :: :ok | {:failure, String.t()}
   def perform() do
-    Beans.register_module(__MODULE__)
-
-    result = with {:ok, socket, _user} <- new_connection(@ping_user_params),
+    with {:ok, socket, _user} <- new_connection(@ping_user_params),
         :ok <- test_ping(socket)
       do
         :ok
       else
-        {:error, reason} ->
-          {:failure, reason}
+        {:error, reason} -> {:failure, reason}
     end
-
-    Beans.save_result(__MODULE__, result)
   end
 
+  @spec test_ping(Tachyon.sslsocket) :: :ok | {:error, String.t()}
   defp test_ping(socket) do
     tachyon_send(socket, %{
       cmd: "c.system.ping"
