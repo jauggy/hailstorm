@@ -1,36 +1,49 @@
 defmodule Mix.Tasks.Beans do
   use Mix.Task
-  require Logger
 
   @spec run(list()) :: :ok
   def run(_args) do
-    Mix.Task.run("app.start")
-    start_time = System.system_time(:millisecond)
+    if can_run?() do
+      Mix.Task.run("app.start")
+      start_time = System.system_time(:millisecond)
 
-    Beans.list_tests()
-      |> Map.new(fn m ->
-        task = Task.async(fn ->
-          Beans.register_module(m)
-          result = m.perform()
-          Beans.save_result(m, result)
+      Beans.list_tests()
+        |> Map.new(fn m ->
+          task = Task.async(fn ->
+            Beans.register_module(m)
+            result = m.perform()
+            Beans.save_result(m, result)
+          end)
+
+          {m, task}
         end)
 
-        {m, task}
-      end)
+      :timer.sleep(500)
 
-    :timer.sleep(500)
+      result = await_result()
+      finish_time = System.system_time(:millisecond)
 
-    result = await_result()
-    finish_time = System.system_time(:millisecond)
+      post_process_results(result, finish_time - start_time)
+    end
+  end
 
-    post_process_results(result, finish_time - start_time)
+  defp can_run?() do
+    test_server_exists()
+  end
+
+  defp test_server_exists() do
+    if Beans.Tachyon.server_exists?() do
+      true
+    else
+      IO.puts(IO.ANSI.format([:red, "Unable to connect to Teiserver instance, have you started it?"]))
+      false
+    end
   end
 
   defp await_result() do
     case Beans.call_server(:collector, :get_result) do
       {:ok, results} -> results
       {:waiting, _remaining} ->
-        # Logger.info("remaining = #{remaining}")
         :timer.sleep(500)
         await_result()
     end

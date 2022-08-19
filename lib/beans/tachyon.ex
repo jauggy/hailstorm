@@ -16,7 +16,7 @@ defmodule Beans.Tachyon do
   def new_connection(params) do
     with :ok <- create_user(params),
       :ok <- update_user(params.email, Map.merge(%{verified: true}, params[:update] || %{})),
-      socket <- get_socket(),
+      {:ok, socket} <- get_socket(),
       {:ok, user} <- login(socket, params.email)
     do
       {:ok, socket, user}
@@ -25,17 +25,22 @@ defmodule Beans.Tachyon do
     end
   end
 
-  @spec get_socket :: sslsocket()
-  defp get_socket() do
-    {:ok, socket} =
-      :ssl.connect(
-        Application.get_env(:beans, Beans)[:host_socket_url],
-        Application.get_env(:beans, Beans)[:port],
-        active: false,
-        verify: :verify_none
-      )
+  @spec server_exists? :: boolean
+  def server_exists?() do
+    case get_socket() do
+      {:ok, _socket} -> true
+      {:error, :econnrefused} -> false
+    end
+  end
 
-    socket
+  @spec get_socket :: {:ok, sslsocket()} | {:error, any}
+  defp get_socket() do
+    :ssl.connect(
+      Application.get_env(:beans, Beans)[:host_socket_url],
+      Application.get_env(:beans, Beans)[:port],
+      active: false,
+      verify: :verify_none
+    )
   end
 
   @spec create_user(map()) :: :ok | {:error, String.t()}
