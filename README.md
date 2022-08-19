@@ -15,3 +15,9 @@ The final command `mix beans` will run the Beans program and output the results.
 
 ## Development and contribution
 Pull requests are welcome, there is [documentation](docs) and in particular an [adding new tests](docs/adding_new_tests.md) document which may be of use.
+
+## TODO
+- Add pre-run check to ensure server is up
+- Helper functions for website requests/tests
+- More examples: Hosting a battle, Multiple connections at once
+- The ability to selectively run only one/some tests
