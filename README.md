@@ -22,3 +22,4 @@ The Tachyon docs are located [here](https://github.com/beyond-all-reason/teiserv
 - Helper functions for website requests/tests
 - More examples: Hosting a battle, Multiple connections at once
 - The ability to selectively run only one/some tests
+- Copy and modify the assert statements from ExUnit

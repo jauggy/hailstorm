@@ -97,7 +97,9 @@ defmodule Beans.Tachyon do
     with {:ok, token} <- get_token(socket, email),
         {:ok, user} <- login_socket(socket, token)
       do
-        {:ok, user}
+        {:ok, user
+          |> Map.new(fn {k, v} -> {String.to_atom(k), v} end)
+        }
       else
         failure -> failure
     end
