@@ -1,6 +1,6 @@
 defmodule Beans.Tests.Friends do
   @moduledoc """
-  Tests adding and removing friends
+  Tests adding and removing friends.
   """
   use Beans.Tachyon
 
