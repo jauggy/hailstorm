@@ -278,6 +278,9 @@ end
 
 defmodule Beans.Tachyon.AssertionError do
   @moduledoc """
+  Copied from ExUnit because we want something similar here. Currently it's just
+  for comparison but it could grow.
+
   Raised to signal an assertion error.
   """
 
@@ -302,7 +305,6 @@ defmodule Beans.Tachyon.AssertionError do
 
   @impl true
   def message(exception) do
-    # "\n\n" <> Beans.Tachyon.Formatter.format_assertion_error(exception)
     exception.message
   end
 end

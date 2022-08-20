@@ -26,6 +26,7 @@ beans-*.tar
 /tmp/
 
 .elixir_ls/*
+zignore/*
 
 *.sublime-project
 *.sublime-workspace
