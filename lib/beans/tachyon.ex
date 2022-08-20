@@ -262,10 +262,47 @@ defmodule Beans.Tachyon do
     end
   end
 
+  def assert(true, _message), do: :ok
+  def assert(false, message) do
+    raise Beans.Tachyon.AssertionError,
+      message: message
+  end
+
   defmacro __using__(_opts) do
     quote do
-      import Beans.Tachyon, only: [tachyon_send: 2, tachyon_recv: 1, tachyon_recv_until: 1, new_connection: 1]
+      import Beans.Tachyon, only: [tachyon_send: 2, tachyon_recv: 1, tachyon_recv_until: 1, new_connection: 1, assert: 2]
       alias Beans.Tachyon
     end
+  end
+end
+
+defmodule Beans.Tachyon.AssertionError do
+  @moduledoc """
+  Raised to signal an assertion error.
+  """
+
+  @no_value :ex_unit_no_meaningful_value
+
+  # defexception left: @no_value,
+  #              right: @no_value,
+  #              message: @no_value,
+  #              expr: @no_value,
+  #              args: @no_value,
+  #              doctest: @no_value,
+  #              context: :==
+
+  defexception message: @no_value
+
+  @doc """
+  Indicates no meaningful value for a field.
+  """
+  def no_value do
+    @no_value
+  end
+
+  @impl true
+  def message(exception) do
+    # "\n\n" <> Beans.Tachyon.Formatter.format_assertion_error(exception)
+    exception.message
   end
 end

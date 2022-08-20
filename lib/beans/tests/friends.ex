@@ -30,12 +30,8 @@ defmodule Beans.Tests.Friends do
     list1 = get_friend_ids(socket1)
     list2 = get_friend_ids(socket2)
 
-    case {list1 == [user2.id], list2 == [user1.id]} do
-      {true, true} -> :ok
-      {false, true} -> {:failure, "User 1 does not have User 2 as a friend"}
-      {true, false} -> {:failure, "User 2 does not have User 1 as a friend"}
-      {false, false} -> {:failure, "Neither user has the other as a friend"}
-    end
+    assert(list1 == [user2.id], "User 1 does not have User 2 as a friend")
+    assert(list2 == [user1.id], "User 1 does not have User 2 as a friend")
   end
 
   @spec add_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok

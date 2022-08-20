@@ -10,9 +10,7 @@ defmodule Mix.Tasks.Beans do
       Beans.list_tests()
         |> Map.new(fn m ->
           task = Task.async(fn ->
-            Beans.register_module(m)
-            result = m.perform()
-            Beans.save_result(m, result)
+            perform_task(m)
           end)
 
           {m, task}
@@ -25,6 +23,19 @@ defmodule Mix.Tasks.Beans do
 
       post_process_results(result, finish_time - start_time)
     end
+  end
+
+  defp perform_task(m) do
+    Beans.register_module(m)
+
+    result = try do
+      m.perform()
+    rescue
+      e in Beans.Tachyon.AssertionError ->
+        {:failure, e.message}
+    end
+
+    Beans.save_result(m, result)
   end
 
   defp can_run?() do
