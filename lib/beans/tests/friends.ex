@@ -16,22 +16,46 @@ defmodule Beans.Tests.Friends do
     [
       {socket1, user1},
       {socket2, user2},
-      # {socket3, user3},
-      # {socket4, user4}
-    ] = 1..2
+      {socket3, user3},
+      {socket4, user4}
+    ] = 1..4
       |> Enum.map(fn i ->
         {:ok, socket, user} = new_connection(user_params(i))
         {socket, user}
       end)
 
+    # Add but don't accept just yet
     add_friend(socket1, user2.id)
+
+    assert(get_friend_ids(socket1) == [], "user1 has added no friends but their friend list is non-empty")
+    assert(get_friend_ids(socket2) == [], "user2 has added no friends but their friend list is non-empty")
+
+    # Now accept
     accept_friend(socket2, user1.id)
 
-    list1 = get_friend_ids(socket1)
-    list2 = get_friend_ids(socket2)
+    assert(get_friend_ids(socket1) == [user2.id], "user1 has been accepted but user2 does not appear in user2's friend list")
+    assert(get_friend_ids(socket2) == [user1.id], "user1 has been accepted but user1 does not appear in user2's friend list")
 
-    assert(list1 == [user2.id], "User 1 does not have User 2 as a friend")
-    assert(list2 == [user1.id], "User 1 does not have User 2 as a friend")
+    # Add new friends
+    add_friend(socket1, user3.id)
+    add_friend(socket1, user4.id)
+
+    # Decline one and accept the other
+    decline_friend(socket3, user1.id)
+    accept_friend(socket4, user1.id)
+
+    assert(get_friend_ids(socket1) == [user4.id, user2.id], "user4 has accepted user1 but hasn't appeared in user1's friend list")
+    assert(get_friend_ids(socket4) == [user1.id], "user4 has accepted user1 but cannot see user1 in their friend list")
+
+    # Finally we test removal
+    remove_friend(socket4, user1.id)
+
+    assert(get_friend_ids(socket1) == [user2.id], "user1's friends are incorrect after user4 removes them as a friend")
+
+    # What happens if we remove the last user, a weird edge case?
+    # Note this time we are testing socket1 removing a friend
+    remove_friend(socket1, user2.id)
+    assert(get_friend_ids(socket1) == [], "user1 removed their last friend yet their friend list is not empty")
   end
 
   @spec add_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
@@ -46,6 +70,22 @@ defmodule Beans.Tests.Friends do
   defp accept_friend(socket, userid) do
     tachyon_send(socket, %{
       cmd: "c.user.accept_friend",
+      user_id: userid
+    })
+  end
+
+  @spec decline_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
+  defp decline_friend(socket, userid) do
+    tachyon_send(socket, %{
+      cmd: "c.user.decline_friend",
+      user_id: userid
+    })
+  end
+
+  @spec remove_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
+  defp remove_friend(socket, userid) do
+    tachyon_send(socket, %{
+      cmd: "c.user.remove_friend",
       user_id: userid
     })
   end

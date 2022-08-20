@@ -8,7 +8,7 @@ Beans does not require anything other than an [Elixir](https://elixir-lang.org/)
 git clone git@github.com:beyond-all-reason/beans.git
 cd beans
 mix deps.get
-mix beans
+mix beans.run
 ```
 
 The final command `mix beans` will run the Beans program and output the results.
@@ -22,4 +22,3 @@ The Tachyon docs are located [here](https://github.com/beyond-all-reason/teiserv
 - Helper functions for website requests/tests
 - More examples: Hosting a battle, Multiple connections at once
 - The ability to selectively run only one/some tests
-- Copy and modify the assert statements from ExUnit

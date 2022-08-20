@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Beans do
+defmodule Mix.Tasks.Beans.Run do
   use Mix.Task
 
   @spec run(list()) :: :ok
