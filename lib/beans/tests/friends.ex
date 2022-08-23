@@ -69,7 +69,7 @@ defmodule Beans.Tests.Friends do
   @spec accept_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
   defp accept_friend(socket, userid) do
     tachyon_send(socket, %{
-      cmd: "c.user.accept_friend",
+      cmd: "c.user.accept_friend_request",
       user_id: userid
     })
   end
