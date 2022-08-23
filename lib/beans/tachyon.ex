@@ -7,7 +7,7 @@ defmodule Beans.Tachyon do
   def get_host(), do: Application.get_env(:beans, Beans)[:host]
 
   @spec get_port() :: non_neg_integer()
-  def get_port(), do: Application.get_env(:beans, Beans)[:port]
+  def get_port(), do: Application.get_env(:beans, Beans)[:ssl_port]
 
   @spec get_password() :: String.t()
   def get_password(), do: Application.get_env(:beans, Beans)[:password]
@@ -37,7 +37,7 @@ defmodule Beans.Tachyon do
   defp get_socket() do
     :ssl.connect(
       Application.get_env(:beans, Beans)[:host_socket_url],
-      Application.get_env(:beans, Beans)[:port],
+      Application.get_env(:beans, Beans)[:ssl_port],
       active: false,
       verify: :verify_none
     )

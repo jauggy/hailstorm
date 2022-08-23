@@ -3,8 +3,9 @@ defmodule Mix.Tasks.Beans.Run do
 
   @spec run(list()) :: :ok
   def run(_args) do
+    Mix.Task.run("app.start")
+
     if can_run?() do
-      Mix.Task.run("app.start")
       start_time = System.system_time(:millisecond)
 
       Beans.list_tests()
@@ -43,10 +44,15 @@ defmodule Mix.Tasks.Beans.Run do
   end
 
   defp test_server_exists() do
-    if Beans.Tachyon.server_exists?() do
-      true
+    if Beans.Web.server_exists?() do
+      if Beans.Tachyon.server_exists?() do
+        true
+      else
+        IO.puts(IO.ANSI.format([:red, "Unable to connect to Teiserver socket but can connect to the web, is it correctly configured?"]))
+        false
+      end
     else
-      IO.puts(IO.ANSI.format([:red, "Unable to connect to Teiserver instance, have you started it?"]))
+      IO.puts(IO.ANSI.format([:red, "Unable to connect to Teiserver web, have you started it?"]))
       false
     end
   end
