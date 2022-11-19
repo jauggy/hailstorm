@@ -27,8 +27,13 @@ defmodule Beans.Tests.Friends do
     # Add but don't accept just yet
     add_friend(socket1, user2.id)
 
-    assert(get_friend_ids(socket1) == [], "user1 has added no friends but their friend list is non-empty")
-    assert(get_friend_ids(socket2) == [], "user2 has added no friends but their friend list is non-empty")
+    {friends, requests} = get_friend_and_request_ids(socket1)
+    assert(friends == [], "user1 has added no friends but their friend list is non-empty")
+    assert(requests == [], "user1 has added no requests but their requests list is non-empty")
+
+    {friends, requests} = get_friend_and_request_ids(socket2)
+    assert(friends == [], "user2 has added no friends but their friend list is non-empty")
+    assert(requests == [user1.id], "user2 should only have user1 as a requested friend")
 
     # Now accept
     accept_friend(socket2, user1.id)
@@ -64,6 +69,7 @@ defmodule Beans.Tests.Friends do
       cmd: "c.user.add_friend",
       user_id: userid
     })
+    :timer.sleep(50)
   end
 
   @spec accept_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
@@ -72,6 +78,7 @@ defmodule Beans.Tests.Friends do
       cmd: "c.user.accept_friend_request",
       user_id: userid
     })
+    :timer.sleep(50)
   end
 
   @spec decline_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
@@ -80,6 +87,7 @@ defmodule Beans.Tests.Friends do
       cmd: "c.user.decline_friend",
       user_id: userid
     })
+    :timer.sleep(50)
   end
 
   @spec remove_friend(Tachyon.sslsocket, non_neg_integer()) :: :ok
@@ -88,6 +96,7 @@ defmodule Beans.Tests.Friends do
       cmd: "c.user.remove_friend",
       user_id: userid
     })
+    :timer.sleep(50)
   end
 
   @spec get_friend_ids(Tachyon.sslsocket) :: [non_neg_integer()]
@@ -100,5 +109,17 @@ defmodule Beans.Tests.Friends do
 
     [reply] = tachyon_recv(socket)
     reply["friend_id_list"]
+  end
+
+  @spec get_friend_and_request_ids(Tachyon.sslsocket) :: {[non_neg_integer()], [non_neg_integer()]}
+  defp get_friend_and_request_ids(socket) do
+    tachyon_recv_until(socket)
+
+    tachyon_send(socket, %{
+      cmd: "c.user.list_friend_ids"
+    })
+
+    [reply] = tachyon_recv(socket)
+    {reply["friend_id_list"], reply["request_id_list"]}
   end
 end

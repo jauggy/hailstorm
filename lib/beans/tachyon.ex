@@ -15,7 +15,12 @@ defmodule Beans.Tachyon do
   @spec new_connection(map()) :: {:ok, sslsocket(), map} | {:error, String.t()}
   def new_connection(params) do
     with :ok <- create_user(params),
-      :ok <- update_user(params.email, Map.merge(%{verified: true}, params[:update] || %{})),
+      :ok <- update_user(params.email, Map.merge(%{verified: true}, params[:update] || %{
+        friends: [],
+        friend_requests: [],
+        ignored: [],
+        avoided: []
+      })),
       {:ok, socket} <- get_socket(),
       {:ok, user} <- login(socket, params.email)
     do
