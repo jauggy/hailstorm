@@ -3,6 +3,7 @@ import Config
 config :beans, Beans,
   host_socket_url: '127.0.0.1',
   host_api_url: "localhost:4000",
+  spring_ssl_port: 8201,
   ssl_port: 8202,
   password: "password"
 

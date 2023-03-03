@@ -1,4 +1,4 @@
-defmodule Beans.Tachyon do
+defmodule Beans.Spring do
   require Logger
 
   @type sslsocket() :: {:sslsocket, any, any}
