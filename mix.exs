@@ -32,6 +32,9 @@ defmodule Beans.MixProject do
       {:logger_file_backend, "~> 0.0.10"},
       {:httpoison, "~> 1.8"},
 
+      {:websockex, "~> 0.4.3"},
+      {:protobuf, "~> 0.11.0"},
+      {:google_protos, "~> 0.1"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
