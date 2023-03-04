@@ -147,18 +147,27 @@ defmodule Hailstorm.SpringHelper do
     end
   end
 
+  @spec spring_send(sslsocket(), String.t() | [String.t()]) :: :ok
+  def spring_send(socket = {:sslsocket, _, _}, msgs) when is_list(msgs) do
+    msgs
+      |> Enum.each(fn msg ->
+        msg = if String.ends_with?(msg, "\n"), do: msg, else: "#{msg}\n"
+        :ok = :ssl.send(socket, msg)
+      end)
+    :timer.sleep(100)
+  end
 
   @spec spring_send(sslsocket(), String.t()) :: :ok
   def spring_send(socket = {:sslsocket, _, _}, msg) do
     msg = if String.ends_with?(msg, "\n"), do: msg, else: "#{msg}\n"
     :ok = :ssl.send(socket, msg)
-    :timer.sleep(50)
+    :timer.sleep(100)
   end
 
   def spring_send(socket, msg) do
     msg = if String.ends_with?(msg, "\n"), do: msg, else: "#{msg}\n"
     :ok = :gen_tcp.send(socket, msg)
-    :timer.sleep(50)
+    :timer.sleep(100)
   end
 
   def spring_recv(socket = {:sslsocket, _, _}) do

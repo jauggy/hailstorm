@@ -55,9 +55,7 @@ defmodule Hailstorm.WebHelper do
     quote do
       import Hailstorm.WebHelper, only: [
         get_html: 1,
-        get: 1,
-
-        hailstorm_request: 1
+        get: 1
       ]
       alias Hailstorm.WebHelper
     end
