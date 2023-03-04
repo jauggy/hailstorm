@@ -7,6 +7,7 @@ defmodule Beans.Tests.PingTest do
 
   alias Beans.TachyonWsServer, as: Ws
   alias Beans.TachyonPbLib
+  alias Beans.ListenerServer, as: Ls
 
   # @ping_user_params %{
   #   email: "ping",
@@ -14,7 +15,8 @@ defmodule Beans.Tests.PingTest do
   # }
 
   test "test" do
-    {:ok, ws} = Ws.start_link("ws://localhost:4000/tachyon/websocket", %{})
+    listener = Ls.new_listener()
+    {:ok, ws} = Ws.start_link("ws://localhost:4000/tachyon/websocket", listener)
 
     type = :token_request
     object = Tachyon.TokenRequest.new(
@@ -26,14 +28,17 @@ defmodule Beans.Tests.PingTest do
     binary = TachyonPbLib.client_wrap_and_encode({type, object}, attrs)
 
     WebSockex.send_frame(ws, {:binary, binary})
+    :timer.sleep(100)
 
-  #   good = <<162, 6, 17, 10, 5, 101, 109, 97, 105, 108, 18, 8, 112, 97, 115, 115, 119, 111,
-  # 114, 100>>
+    messages = Ls.get(listener)
 
-  #   bad = <<162, 6, 14, 10, 5, 101, 109, 97, 105, 108, 18, 5, 119, 114, 111, 110, 103>>
+    # IO.puts ""
+    # IO.inspect messages
+    # IO.puts ""
 
+    assert Enum.member?(messages, {{:token_response,
+    %Tachyon.TokenResponse{token: "token", __unknown_fields__: []}}, %{id: 0}})
 
-    :timer.sleep(200)
   end
 
   # @spec perform :: :ok | {:failure, String.t()}

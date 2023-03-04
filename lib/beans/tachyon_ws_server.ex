@@ -1,31 +1,25 @@
 defmodule Beans.TachyonWsServer do
   use WebSockex
 
-  def start_link(url) do
-    WebSockex.start_link(url, __MODULE__, blank_state())
+  def start_link(url, listener_pid) do
+    WebSockex.start_link(url, __MODULE__, blank_state(listener_pid))
   end
 
-  def handle_frame({type, msg}, state) do
+  def handle_frame({_type, msg}, state) do
     # IO.puts "Received Message - Type: #{inspect type} -- Message: #{inspect msg}"
-    {:ok, %{state | messages: [msg | state.messages]}}
+    # IO.puts "Received Message - Message: #{inspect msg}"
+    send(state.listener_pid, msg)
+    {:ok, state}
   end
 
-  def handle_cast({:send, {type, msg} = frame}, state) do
-    IO.puts "Sending #{type} frame with payload: #{msg}"
+  def handle_cast({:send, {_type, _msg} = frame}, state) do
+    # IO.puts "Sending #{type} frame with payload: #{msg}"
     {:reply, frame, state}
   end
 
-  def handle_call(:get_messages, _from, state) do
-    {:reply, state.messages, state}
-  end
-
-  def handle_call(:pop_messages, _from, state) do
-    {:reply, state.messages, %{state | messages: []}}
-  end
-
-  defp blank_state() do
+  defp blank_state(listener_pid) do
     %{
-      messages: []
+      listener_pid: listener_pid
     }
   end
 end
