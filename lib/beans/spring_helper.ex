@@ -55,7 +55,7 @@ defmodule Beans.SpringHelper do
   @spec create_user(map()) :: :ok | {:error, String.t()}
   defp create_user(params) do
     url = [
-      Application.get_env(:beans, Beans)[:host_api_url],
+      Application.get_env(:beans, Beans)[:host_web_url],
       "teiserver/api/beans/create_user"
     ] |> Enum.join("/")
 
@@ -79,7 +79,7 @@ defmodule Beans.SpringHelper do
   @spec update_user(String.t(), map()) :: :ok | {:error, String.t()}
   defp update_user(email, params) do
     url = [
-      Application.get_env(:beans, Beans)[:host_api_url],
+      Application.get_env(:beans, Beans)[:host_web_url],
       "teiserver/api/beans/ts_update_user"
     ] |> Enum.join("/")
 

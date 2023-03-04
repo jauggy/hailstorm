@@ -2,7 +2,7 @@ ExUnit.start()
 
 # Before we run any tests lets ensure the test server is actually running
 url = [
-  Application.get_env(:beans, Beans)[:host_api_url],
+  Application.get_env(:beans, Beans)[:host_web_url],
   "teiserver/api/beans/up"
 ] |> Enum.join("/")
 

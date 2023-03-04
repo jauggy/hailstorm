@@ -2,7 +2,7 @@ import Config
 
 config :beans, Beans,
   host_socket_url: '127.0.0.1',
-  host_api_url: "localhost:4000",
+  host_web_url: "localhost:4000",
   websocket_url: "ws://localhost:4000/tachyon/websocket",
   spring_ssl_port: 8201,
   ssl_port: 8202,
