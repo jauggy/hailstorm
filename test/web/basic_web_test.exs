@@ -1,9 +1,9 @@
-defmodule Beans.Tests.BasicWebTest do
+defmodule Hailstorm.Tests.BasicWebTest do
   @moduledoc """
   Tests the Ping command
   """
   use ExUnit.Case, async: true
-  use Beans.WebHelper
+  use Hailstorm.WebHelper
 
   test "test responses" do
     # Test the 404 part

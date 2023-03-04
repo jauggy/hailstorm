@@ -1,4 +1,4 @@
-defmodule Beans.ListenerServer do
+defmodule Hailstorm.ListenerServer do
   @moduledoc """
   A genserver for collecting messages sent to the websocket.
 
@@ -7,7 +7,7 @@ defmodule Beans.ListenerServer do
   """
 
   use GenServer
-  alias Beans.TachyonPbLib
+  alias Hailstorm.TachyonPbLib
 
   def new_listener() do
     {:ok, pid} = start_link()

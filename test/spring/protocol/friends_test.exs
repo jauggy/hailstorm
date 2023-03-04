@@ -1,6 +1,6 @@
 defmodule Spring.Protocol.FriendTest do
   use ExUnit.Case, async: true
-  use Beans.SpringHelper
+  use Hailstorm.SpringHelper
 
   test "connect" do
     [
@@ -13,7 +13,7 @@ defmodule Spring.Protocol.FriendTest do
         name = "friends_#{i}"
         {:ok, socket} = new_connection(%{name: name})
 
-        {socket, name <> "_beans"}
+        {socket, name <> "_hailstorm"}
       end)
 
     # Add but don't accept just yet

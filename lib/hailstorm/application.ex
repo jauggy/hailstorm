@@ -1,4 +1,4 @@
-defmodule Beans.Application do
+defmodule Hailstorm.Application do
   @moduledoc false
 
   use Application
@@ -11,7 +11,7 @@ defmodule Beans.Application do
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Beans.Supervisor]
+    opts = [strategy: :one_for_one, name: Hailstorm.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

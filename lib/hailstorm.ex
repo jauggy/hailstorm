@@ -1,6 +1,6 @@
-defmodule Beans do
+defmodule Hailstorm do
   @moduledoc """
-  Documentation for `Beans`.
+  Documentation for `Hailstorm`.
   """
 
   @spec register_module(module()) :: :ok | nil
@@ -10,12 +10,12 @@ defmodule Beans do
 
   @spec save_result(module(), :ok | {:failure, String.t()}) :: :ok | nil
   def save_result(module, result) do
-    Beans.cast_server(:collector, {:complete, module, result})
+    Hailstorm.cast_server(:collector, {:complete, module, result})
   end
 
   @spec get_server_pid(any) :: pid() | nil
   def get_server_pid(id) do
-    case Registry.lookup(Beans.Registry, id) do
+    case Registry.lookup(Hailstorm.Registry, id) do
       [{pid, _}] ->
         pid
       _ ->
@@ -51,9 +51,9 @@ defmodule Beans do
 
   @spec list_tests() :: []
   def list_tests do
-    with {:ok, mlist} <- :application.get_key(:beans, :modules) do
+    with {:ok, mlist} <- :application.get_key(:hailstorm, :modules) do
       mlist
-        |> Enum.filter(& &1 |> Module.split |> Enum.take(2) == ~w(Beans Tests))
+        |> Enum.filter(& &1 |> Module.split |> Enum.take(2) == ~w(Hailstorm Tests))
     end
   end
 end

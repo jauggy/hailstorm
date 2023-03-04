@@ -1,4 +1,4 @@
-defmodule Beans.TachyonPbLib do
+defmodule Hailstorm.TachyonPbLib do
   @moduledoc """
 
   """

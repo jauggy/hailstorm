@@ -1,9 +1,9 @@
-defmodule Beans.MixProject do
+defmodule Hailstorm.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :beans,
+      app: :hailstorm,
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
@@ -15,7 +15,7 @@ defmodule Beans.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Beans.Application, []}
+      mod: {Hailstorm.Application, []}
     ]
   end
 

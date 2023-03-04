@@ -1,19 +1,19 @@
-defmodule Beans.TachyonHelper do
+defmodule Hailstorm.TachyonHelper do
   require Logger
-  alias Beans.TachyonWsServer, as: Ws
-  alias Beans.ListenerServer
-  alias Beans.TachyonPbLib
+  alias Hailstorm.TachyonWsServer, as: Ws
+  alias Hailstorm.ListenerServer
+  alias Hailstorm.TachyonPbLib
 
   @type sslsocket() :: {:sslsocket, any, any}
 
   @spec get_host() :: binary()
-  def get_host(), do: Application.get_env(:beans, Beans)[:host]
+  def get_host(), do: Application.get_env(:hailstorm, Hailstorm)[:host]
 
   @spec get_websocket_url() :: non_neg_integer()
-  def get_websocket_url(), do: Application.get_env(:beans, Beans)[:websocket_url]
+  def get_websocket_url(), do: Application.get_env(:hailstorm, Hailstorm)[:websocket_url]
 
   @spec get_password() :: String.t()
-  def get_password(), do: Application.get_env(:beans, Beans)[:password]
+  def get_password(), do: Application.get_env(:hailstorm, Hailstorm)[:password]
 
   @spec new_connection(map()) :: {:ok, pid(), pid()} | {:error, String.t()}
   def new_connection(params) do
@@ -42,8 +42,8 @@ defmodule Beans.TachyonHelper do
   @spec create_user(map()) :: :ok | {:error, String.t()}
   defp create_user(params) do
     url = [
-      Application.get_env(:beans, Beans)[:host_web_url],
-      "teiserver/api/beans/create_user"
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/create_user"
     ] |> Enum.join("/")
 
     data = params
@@ -66,12 +66,12 @@ defmodule Beans.TachyonHelper do
   @spec update_user(String.t(), map()) :: :ok | {:error, String.t()}
   defp update_user(email, params) do
     url = [
-      Application.get_env(:beans, Beans)[:host_web_url],
-      "teiserver/api/beans/ts_update_user"
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/ts_update_user"
     ] |> Enum.join("/")
 
     data = %{
-      email: "#{email}@beans",
+      email: "#{email}@hailstorm",
       attrs: params
     } |> Jason.encode!
 
@@ -101,7 +101,7 @@ defmodule Beans.TachyonHelper do
 
   # @spec get_token(sslsocket, String.t()) :: {:ok, String.t()} | {:error, String.t()}
   # defp get_token(socket, email) do
-  #   tachyon_send(socket, "c.user.get_token_by_email #{email}@beans\t#{get_password()}")
+  #   tachyon_send(socket, "c.user.get_token_by_email #{email}@hailstorm\t#{get_password()}")
 
   #   case tachyon_recv(socket) do
   #     "s.user.user_token " <> token_resp ->
@@ -180,7 +180,7 @@ defmodule Beans.TachyonHelper do
 
   defmacro __using__(_opts) do
     quote do
-      import Beans.TachyonHelper, only: [
+      import Hailstorm.TachyonHelper, only: [
         tachyon_send: 2,
         read_messages: 1,
         read_messages: 2,
@@ -188,7 +188,7 @@ defmodule Beans.TachyonHelper do
         pop_messages: 2,
         new_connection: 1
       ]
-      alias Beans.TachyonHelper
+      alias Hailstorm.TachyonHelper
       alias Tachyon
     end
   end

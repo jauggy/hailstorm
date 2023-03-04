@@ -1,6 +1,6 @@
 defmodule Spring.Consul.CommandsTest do
   use ExUnit.Case, async: true
-  use Beans.SpringHelper
+  use Hailstorm.SpringHelper
 
   test "connect" do
     host = new_connection(%{

@@ -1,4 +1,4 @@
-defmodule Beans.TachyonWsServer do
+defmodule Hailstorm.TachyonWsServer do
   use WebSockex
 
   def start_link(url, listener_pid) do

@@ -2,7 +2,7 @@
 In this test we will be checking the functionality of the most basic Tachyon command, [`c.system.ping`](https://github.com/beyond-all-reason/teiserver/blob/master/documents/tachyon/system.md#csystemping).
 
 ## Boilerplate
-We start by naming the module according to the requirements of `Beans.Tests.<<NAME>>` and given our test is for the ping command it makes sense to go with `Beans.Tests.Ping`. Next up we have a brief moduledoc to explain the purpose of this test. It's such a simple test we've barely written anything here.
+We start by naming the module according to the requirements of `Hailstorm.Tests.<<NAME>>` and given our test is for the ping command it makes sense to go with `Hailstorm.Tests.Ping`. Next up we have a brief moduledoc to explain the purpose of this test. It's such a simple test we've barely written anything here.
 
 We have `use Tachyon` to give us all the required helper functions to make our life easier and then declare `@ping_user_params` to make it easier to later create/use the user.
 

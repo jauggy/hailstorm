@@ -1,6 +1,6 @@
 defmodule Spring.Coordinator.CommandsTest do
   use ExUnit.Case, async: true
-  use Beans.SpringHelper
+  use Hailstorm.SpringHelper
 
   test "no_command" do
     name = "no_command"

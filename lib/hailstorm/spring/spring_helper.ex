@@ -1,4 +1,4 @@
-defmodule Beans.SpringHelper do
+defmodule Hailstorm.SpringHelper do
   @moduledoc """
 
   """
@@ -7,16 +7,16 @@ defmodule Beans.SpringHelper do
   @type sslsocket() :: {:sslsocket, any, any}
 
   @spec get_host() :: binary()
-  def get_host(), do: Application.get_env(:beans, Beans)[:host]
+  def get_host(), do: Application.get_env(:hailstorm, Hailstorm)[:host]
 
   @spec get_socket_url() :: non_neg_integer()
-  def get_socket_url(), do: Application.get_env(:beans, Beans)[:host_socket_url]
+  def get_socket_url(), do: Application.get_env(:hailstorm, Hailstorm)[:host_socket_url]
 
   @spec get_port() :: non_neg_integer()
-  def get_port(), do: Application.get_env(:beans, Beans)[:spring_ssl_port]
+  def get_port(), do: Application.get_env(:hailstorm, Hailstorm)[:spring_ssl_port]
 
   @spec get_password() :: String.t()
-  def get_password(), do: Application.get_env(:beans, Beans)[:password]
+  def get_password(), do: Application.get_env(:hailstorm, Hailstorm)[:password]
 
   defp cleanup_params(params) do
     email = Map.get(params, :email, params.name)
@@ -65,8 +65,8 @@ defmodule Beans.SpringHelper do
   @spec create_user(map()) :: :ok | {:error, String.t()}
   defp create_user(params) do
     url = [
-      Application.get_env(:beans, Beans)[:host_web_url],
-      "teiserver/api/beans/create_user"
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/create_user"
     ] |> Enum.join("/")
 
     data = params
@@ -89,12 +89,12 @@ defmodule Beans.SpringHelper do
   @spec update_user(String.t(), map()) :: :ok | {:error, String.t()}
   defp update_user(email, params) do
     url = [
-      Application.get_env(:beans, Beans)[:host_web_url],
-      "teiserver/api/beans/ts_update_user"
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/ts_update_user"
     ] |> Enum.join("/")
 
     data = %{
-      email: "#{email}@beans",
+      email: "#{email}@hailstorm",
       attrs: params
     } |> Jason.encode!
 
@@ -124,7 +124,7 @@ defmodule Beans.SpringHelper do
 
   @spec get_token(sslsocket, String.t()) :: {:ok, String.t()} | {:error, String.t()}
   defp get_token(socket, email) do
-    spring_send(socket, "c.user.get_token_by_email #{email}@beans\t#{get_password()}")
+    spring_send(socket, "c.user.get_token_by_email #{email}@hailstorm\t#{get_password()}")
 
     case spring_recv(socket) do
       "s.user.user_token " <> token_resp ->
@@ -136,7 +136,7 @@ defmodule Beans.SpringHelper do
 
   @spec login_socket(sslsocket(), String.t()) :: :ok | {:error, String.t()}
   defp login_socket(socket, token) do
-    spring_send(socket, "c.user.login #{token}\tBeans\tBEANS\ta b c")
+    spring_send(socket, "c.user.login #{token}\tHailstorm\tBEANS\ta b c")
 
     case spring_recv(socket) do
       "ACCEPTED " <> _username ->
@@ -201,14 +201,14 @@ defmodule Beans.SpringHelper do
 
   defmacro __using__(_opts) do
     quote do
-      import Beans.SpringHelper, only: [
+      import Hailstorm.SpringHelper, only: [
         spring_send: 2,
         spring_recv: 1,
         spring_recv_until: 1,
         new_connection: 1
       ]
-      alias Beans.SpringHelper
-      alias Beans.Spring.Commands
+      alias Hailstorm.SpringHelper
+      alias Hailstorm.Spring.Commands
     end
   end
 end

@@ -1,4 +1,4 @@
-defmodule Beans.WebHelper do
+defmodule Hailstorm.WebHelper do
   @spec get_html(String.t()) :: String.t()
   def get_html(path) do
     case do_get(path) do
@@ -20,15 +20,15 @@ defmodule Beans.WebHelper do
           | {:ok, %HTTPoison.AsyncResponse{}}
           | {:ok, %HTTPoison.Response{}}
   def do_get(path) do
-    url = Application.get_env(:beans, Beans)[:host_web_url] <> path
+    url = Application.get_env(:hailstorm, Hailstorm)[:host_web_url] <> path
     HTTPoison.get(url)
   end
 
-  @spec set_beans_config(String.t(), String.t()) :: :ok | {:error, String.t()}
-  def set_beans_config(key, value) do
+  @spec set_hailstorm_config(String.t(), String.t()) :: :ok | {:error, String.t()}
+  def set_hailstorm_config(key, value) do
     url = [
-      Application.get_env(:beans, Beans)[:host_web_url],
-      "teiserver/api/beans/update_site_config"
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/update_site_config"
     ] |> Enum.join("/")
 
     data = %{
@@ -53,13 +53,13 @@ defmodule Beans.WebHelper do
 
   defmacro __using__(_opts) do
     quote do
-      import Beans.WebHelper, only: [
+      import Hailstorm.WebHelper, only: [
         get_html: 1,
         get: 1,
 
-        beans_request: 1
+        hailstorm_request: 1
       ]
-      alias Beans.WebHelper
+      alias Hailstorm.WebHelper
     end
   end
 end

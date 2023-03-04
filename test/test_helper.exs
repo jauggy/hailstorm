@@ -2,8 +2,8 @@ ExUnit.start()
 
 # Before we run any tests lets ensure the test server is actually running
 url = [
-  Application.get_env(:beans, Beans)[:host_web_url],
-  "teiserver/api/beans/up"
+  Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+  "teiserver/api/hailstorm/up"
 ] |> Enum.join("/")
 
 case HTTPoison.post(url, "", [{"Content-Type", "application/json"}]) do
@@ -14,4 +14,4 @@ case HTTPoison.post(url, "", [{"Content-Type", "application/json"}]) do
 end
 
 # Now to setup some configs we want a certain way
-Beans.WebHelper.set_beans_config("teiserver.Username max length", "100")
+Hailstorm.WebHelper.set_hailstorm_config("teiserver.Username max length", "100")

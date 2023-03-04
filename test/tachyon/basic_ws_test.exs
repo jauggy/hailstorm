@@ -1,9 +1,9 @@
-defmodule Beans.Tests.PingTest do
+defmodule Hailstorm.Tests.PingTest do
   @moduledoc """
   Tests the Ping command
   """
   use ExUnit.Case, async: true
-  use Beans.TachyonHelper
+  use Hailstorm.TachyonHelper
 
   @ping_user_params %{
     email: "ping",

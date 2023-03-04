@@ -1,39 +1,39 @@
-defmodule Beans.Spring.Commands do
+defmodule Hailstorm.Spring.Commands do
   @moduledoc """
 
   """
-  import Beans.SpringHelper, only: [
+  import Hailstorm.SpringHelper, only: [
     spring_send: 2,
     spring_recv: 1,
     spring_recv_until: 1
   ]
 
-  @spec send_dm(Beans.SpringHelper.sslsocket, String.t(), String.t()) :: :ok
+  @spec send_dm(Hailstorm.SpringHelper.sslsocket, String.t(), String.t()) :: :ok
   def send_dm(socket, target, message) do
     spring_send(socket, "SAYPRIVATE #{target} #{message}")
   end
 
-  @spec add_friend(Beans.SpringHelper.sslsocket, String.t()) :: :ok
+  @spec add_friend(Hailstorm.SpringHelper.sslsocket, String.t()) :: :ok
   def add_friend(socket, name) do
     spring_send(socket, "FRIENDREQUEST userName=#{name}")
   end
 
-  @spec accept_friend(Beans.SpringHelper.sslsocket, String.t()) :: :ok
+  @spec accept_friend(Hailstorm.SpringHelper.sslsocket, String.t()) :: :ok
   def accept_friend(socket, name) do
     spring_send(socket, "ACCEPTFRIENDREQUEST userName=#{name}")
   end
 
-  @spec decline_friend(Beans.SpringHelper.sslsocket, String.t()) :: :ok
+  @spec decline_friend(Hailstorm.SpringHelper.sslsocket, String.t()) :: :ok
   def decline_friend(socket, name) do
     spring_send(socket, "DECLINEFRIENDREQUEST userName=#{name}")
   end
 
-  @spec remove_friend(Beans.SpringHelper.sslsocket, String.t()) :: :ok
+  @spec remove_friend(Hailstorm.SpringHelper.sslsocket, String.t()) :: :ok
   def remove_friend(socket, name) do
     spring_send(socket, "UNFRIEND userName=#{name}")
   end
 
-  @spec get_friend_names(Beans.SpringHelper.sslsocket) :: [String.t()]
+  @spec get_friend_names(Hailstorm.SpringHelper.sslsocket) :: [String.t()]
   def get_friend_names(socket) do
     spring_recv_until(socket)
 
@@ -51,7 +51,7 @@ defmodule Beans.Spring.Commands do
       end)
   end
 
-  @spec get_friend_request_names(Beans.SpringHelper.sslsocket) :: [String.t()]
+  @spec get_friend_request_names(Hailstorm.SpringHelper.sslsocket) :: [String.t()]
   def get_friend_request_names(socket) do
     spring_recv_until(socket)
 
