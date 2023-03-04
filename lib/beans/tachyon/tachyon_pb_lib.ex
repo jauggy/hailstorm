@@ -20,7 +20,7 @@ defmodule Beans.TachyonPbLib do
     @module_from_atom[atom]
   end
 
-  @spec get_module(module()) :: atom
+  @spec get_atom(module()) :: atom
   def get_atom(module) do
     @atom_from_module[module]
   end

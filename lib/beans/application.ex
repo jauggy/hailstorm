@@ -6,10 +6,7 @@ defmodule Beans.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Registry, keys: :duplicate, name: Beans.Registry},
-      {DynamicSupervisor, strategy: :one_for_one, name: Beans.DynamicSupervisor},
 
-      {Beans.Collector.CollectorServer, []},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

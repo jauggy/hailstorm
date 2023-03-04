@@ -1,4 +1,4 @@
-defmodule Beans.Tachyon do
+defmodule Beans.SpringHelper do
   require Logger
 
   @type sslsocket() :: {:sslsocket, any, any}
@@ -190,13 +190,13 @@ defmodule Beans.Tachyon do
 
   defmacro __using__(_opts) do
     quote do
-      import Beans.Spring, only: [
+      import Beans.SpringHelper, only: [
         spring_send: 2,
         spring_recv: 1,
         spring_recv_until: 1,
         new_connection: 1
       ]
-      alias Beans.Spring
+      alias Beans.SpringHelper
     end
   end
 end

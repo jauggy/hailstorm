@@ -1,10 +1,12 @@
 defmodule Beans.ListenerServer do
   @moduledoc """
-  A genserver whose sole purpose is to listen to one or more pubusbs and record what they get sent
+  A genserver for collecting messages sent to the websocket.
+
+  Reading will return the state without emptying it
+  Popping will return the state and clear it
   """
 
   use GenServer
-  alias Phoenix.PubSub
   alias Beans.TachyonPbLib
 
   def new_listener() do
@@ -16,8 +18,8 @@ defmodule Beans.ListenerServer do
     GenServer.call(pid, :pop)
   end
 
-  def get(pid) do
-    GenServer.call(pid, :get)
+  def read(pid) do
+    GenServer.call(pid, :read)
   end
 
   def start_link() do
@@ -36,7 +38,7 @@ defmodule Beans.ListenerServer do
     {:reply, state, []}
   end
 
-  def handle_call(:get, _from, state) do
+  def handle_call(:read, _from, state) do
     {:reply, state, state}
   end
 

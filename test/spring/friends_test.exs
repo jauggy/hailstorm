@@ -1,6 +1,6 @@
 defmodule Teiserver.Spring.FriendTest do
   use ExUnit.Case, async: true
-  use Beans.Spring
+  use Beans.SpringHelper
 
   defp user_params(i) do
     %{
