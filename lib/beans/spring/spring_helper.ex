@@ -1,4 +1,7 @@
 defmodule Beans.SpringHelper do
+  @moduledoc """
+
+  """
   require Logger
 
   @type sslsocket() :: {:sslsocket, any, any}
@@ -15,10 +18,17 @@ defmodule Beans.SpringHelper do
   @spec get_password() :: String.t()
   def get_password(), do: Application.get_env(:beans, Beans)[:password]
 
+  defp cleanup_params(params) do
+    email = Map.get(params, :email, params.name)
+    Map.put(params, :email, email)
+  end
+
   @spec new_connection(map()) :: {:ok, sslsocket(), map} | {:error, String.t()}
   def new_connection(params) do
+    params = cleanup_params(params)
+
     with :ok <- create_user(params),
-      :ok <- update_user(params.email, Map.merge(%{verified: true}, params[:update] || %{
+      :ok <- update_user(Map.get(params, :email, params.name), Map.merge(%{verified: true}, params[:update] || %{
         friends: [],
         friend_requests: [],
         ignored: [],
@@ -142,12 +152,13 @@ defmodule Beans.SpringHelper do
   def spring_send(socket = {:sslsocket, _, _}, msg) do
     msg = if String.ends_with?(msg, "\n"), do: msg, else: "#{msg}\n"
     :ok = :ssl.send(socket, msg)
+    :timer.sleep(50)
   end
 
   def spring_send(socket, msg) do
     msg = if String.ends_with?(msg, "\n"), do: msg, else: "#{msg}\n"
     :ok = :gen_tcp.send(socket, msg)
-    :timer.sleep(100)
+    :timer.sleep(50)
   end
 
   def spring_recv(socket = {:sslsocket, _, _}) do
@@ -197,6 +208,7 @@ defmodule Beans.SpringHelper do
         new_connection: 1
       ]
       alias Beans.SpringHelper
+      alias Beans.Spring.Commands
     end
   end
 end

@@ -12,3 +12,6 @@ case HTTPoison.post(url, "", [{"Content-Type", "application/json"}]) do
   _resp ->
     raise "Server not up, cannot start tests"
 end
+
+# Now to setup some configs we want a certain way
+Beans.WebHelper.set_beans_config("teiserver.Username max length", "100")
