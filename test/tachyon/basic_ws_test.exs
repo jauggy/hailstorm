@@ -12,13 +12,17 @@ defmodule Hailstorm.Tests.PingTest do
   test "test" do
     {:ok, ws, ls} = new_connection(@ping_user_params)
 
-    tachyon_send(ws, Tachyon.TokenRequest.new(
-      email: "email",
-      password: "password"
-    ))
+    tachyon_send(ws, Tachyon.MyselfRequest.new())
 
     messages = pop_messages(ls, 500)
+      |> Enum.filter(fn
+        %Tachyon.MyselfResponse{} -> true
+        _ -> false
+      end)
 
-    assert Enum.member?(messages, %Tachyon.TokenResponse{token: "token"})
+    assert Enum.count(messages) == 1
+    resp = hd(messages)
+
+    assert resp.user.name == "ping_hailstorm"
   end
 end
