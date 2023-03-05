@@ -95,7 +95,7 @@ defmodule Hailstorm.SpringHelper do
     ] |> Enum.join("/")
 
     data = %{
-      email: "#{email}@hailstorm",
+      email: "#{email}",
       attrs: params
     } |> Jason.encode!
 
@@ -125,7 +125,7 @@ defmodule Hailstorm.SpringHelper do
 
   @spec get_token(sslsocket, String.t()) :: {:ok, String.t()} | {:error, String.t()}
   defp get_token(socket, email) do
-    spring_send(socket, "c.user.get_token_by_email #{email}@hailstorm\t#{get_password()}")
+    spring_send(socket, "c.user.get_token_by_email #{email}\t#{get_password()}")
 
     case spring_recv(socket) do
       "s.user.user_token " <> token_resp ->
