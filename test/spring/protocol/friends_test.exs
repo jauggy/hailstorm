@@ -11,7 +11,7 @@ defmodule Spring.Protocol.FriendTest do
     ] = 1..4
       |> Enum.map(fn i ->
         name = "friends_#{i}"
-        {:ok, socket} = new_connection(%{name: name})
+        socket = new_connection(%{name: name})
 
         {socket, name <> "_hailstorm"}
       end)

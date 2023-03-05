@@ -4,8 +4,7 @@ defmodule Spring.Coordinator.CommandsTest do
 
   test "no_command" do
     name = "no_command"
-    {:ok, socket} = new_connection(%{name: name, email: name})
-    spring_recv_until(socket)
+    socket = new_connection(%{name: name, email: name})
 
     Commands.send_dm(socket, "Coordinator", "$no_command_here or here")
     :timer.sleep(100)

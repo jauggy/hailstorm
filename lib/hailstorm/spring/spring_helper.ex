@@ -38,9 +38,10 @@ defmodule Hailstorm.SpringHelper do
       _welcome_message <- spring_recv(socket),
       :ok <- login(socket, params.email)
     do
-      {:ok, socket}
+      spring_recv_until(socket)
+      socket
     else
-      failure -> failure
+      failure -> {:error, failure}
     end
   end
 
@@ -208,13 +209,27 @@ defmodule Hailstorm.SpringHelper do
     end
   end
 
+  @spec split_commands(String.t()) :: [{String.t(), [String.t()]}]
+  def split_commands(string) do
+    string
+    |> String.split("\n")
+    |> Enum.reject(fn s -> s == "" end)
+    |> Enum.map(fn line ->
+      [spaces | tabbed] = String.split(line, "\t")
+      [cmd | spaced] = String.split(spaces, " ")
+
+      {cmd, spaced ++ tabbed}
+    end)
+  end
+
   defmacro __using__(_opts) do
     quote do
       import Hailstorm.SpringHelper, only: [
         spring_send: 2,
         spring_recv: 1,
         spring_recv_until: 1,
-        new_connection: 1
+        new_connection: 1,
+        split_commands: 1
       ]
       alias Hailstorm.SpringHelper
       alias Hailstorm.Spring.Commands
