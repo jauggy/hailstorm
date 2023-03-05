@@ -6,7 +6,6 @@ defmodule Hailstorm.Tests.PingTest do
   use Hailstorm.TachyonHelper
 
   @ping_user_params %{
-    email: "ping",
     name: "ping"
   }
 

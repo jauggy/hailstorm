@@ -19,7 +19,7 @@ defmodule Hailstorm.SpringHelper do
   def get_password(), do: Application.get_env(:hailstorm, Hailstorm)[:password]
 
   defp cleanup_params(params) do
-    email = Map.get(params, :email, params.name)
+    email = Map.get(params, :email, params.name) <> "@hailstorm_spring"
     Map.put(params, :email, email)
   end
 

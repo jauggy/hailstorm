@@ -9,14 +9,24 @@ defmodule Hailstorm.TachyonHelper do
   @spec get_host() :: binary()
   def get_host(), do: Application.get_env(:hailstorm, Hailstorm)[:host]
 
-  @spec get_websocket_url() :: non_neg_integer()
-  def get_websocket_url(), do: Application.get_env(:hailstorm, Hailstorm)[:websocket_url]
+  @spec get_websocket_url(String.t()) :: non_neg_integer()
+  def get_websocket_url(token_value) do
+    query = URI.encode_query(%{"token" => token_value})
+    Application.get_env(:hailstorm, Hailstorm)[:websocket_url] <> "?#{query}"
+  end
 
   @spec get_password() :: String.t()
   def get_password(), do: Application.get_env(:hailstorm, Hailstorm)[:password]
 
+  defp cleanup_params(params) do
+    email = Map.get(params, :email, params.name) <> "@hailstorm_tachyon"
+    Map.put(params, :email, email)
+  end
+
   @spec new_connection(map()) :: {:ok, pid(), pid()} | {:error, String.t()}
   def new_connection(params) do
+    params = cleanup_params(params)
+
     with :ok <- create_user(params),
       :ok <- update_user(params.email, Map.merge(%{verified: true}, params[:update] || %{
         friends: [],
@@ -24,8 +34,9 @@ defmodule Hailstorm.TachyonHelper do
         ignored: [],
         avoided: []
       })),
+      {:ok, token} <- get_token(params),
       listener <- ListenerServer.new_listener(),
-      {:ok, ws} <- get_socket(listener)
+      {:ok, ws} <- get_socket(token, listener)
       # :ok <- login(ws, params.email)
     do
       {:ok, ws, listener}
@@ -34,9 +45,9 @@ defmodule Hailstorm.TachyonHelper do
     end
   end
 
-  @spec get_socket(pid()) :: {:ok, sslsocket()} | {:error, any}
-  defp get_socket(listener) do
-    Ws.start_link(get_websocket_url(), listener)
+  @spec get_socket(String.t(), pid()) :: {:ok, sslsocket()} | {:error, any}
+  defp get_socket(token, listener) do
+    Ws.start_link(get_websocket_url(token), listener)
   end
 
   @spec create_user(map()) :: :ok | {:error, String.t()}
@@ -51,15 +62,43 @@ defmodule Hailstorm.TachyonHelper do
       |> Jason.encode!
 
     result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
-      {:ok, resp} ->
+      {:ok, %{status_code: 201} = resp} ->
         resp.body |> Jason.decode!
+      {_, resp} ->
+        %{"result" => "failure", "reason" => "bad request (code: #{resp.status_code})"}
     end
 
     case result do
       %{"result" => "failure"} ->
-        {:error, "Error creating user #{params.email} at '#{result["stage"]}' because #{result["reason"]}"}
+        {:error, "Error creating user #{params.email} because #{result["reason"]}"}
       %{"userid" => _userid} ->
         :ok
+    end
+  end
+
+  @spec get_token(map()) :: {:ok, String.t()} | {:error, String.t()}
+  defp get_token(params) do
+    url = [
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/request_token"
+    ] |> Enum.join("/")
+
+    data = params
+      |> Map.put("password", get_password())
+      |> Jason.encode!
+
+    result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
+      {:ok, resp} ->
+        resp.body |> Jason.decode!
+      {:error, _resp} ->
+        %{"result" => "failure", "reason" => "bad request"}
+    end
+
+    case result do
+      %{"result" => "failure", "reason" => reason} ->
+        {:error, "Error getting user token for '#{params.email}', because #{reason}"}
+      %{"result" => "success", "token_value" => token_value} ->
+        {:ok, token_value}
     end
   end
 
@@ -71,13 +110,15 @@ defmodule Hailstorm.TachyonHelper do
     ] |> Enum.join("/")
 
     data = %{
-      email: "#{email}@hailstorm",
+      email: email,
       attrs: params
     } |> Jason.encode!
 
     result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
       {:ok, resp} ->
         resp.body |> Jason.decode!
+      {:error, _resp} ->
+        %{"result" => "failure", "reason" => "bad request"}
     end
 
     case result do
@@ -87,29 +128,6 @@ defmodule Hailstorm.TachyonHelper do
         :ok
     end
   end
-
-  # @spec login(sslsocket(), Map.t()) :: :ok | {:error, String.t()}
-  # defp login(socket, email) do
-  #   with {:ok, token} <- get_token(socket, email),
-  #       :ok <- login_socket(socket, token)
-  #     do
-  #       :ok
-  #     else
-  #       failure -> failure
-  #   end
-  # end
-
-  # @spec get_token(sslsocket, String.t()) :: {:ok, String.t()} | {:error, String.t()}
-  # defp get_token(socket, email) do
-  #   tachyon_send(socket, "c.user.get_token_by_email #{email}@hailstorm\t#{get_password()}")
-
-  #   case tachyon_recv(socket) do
-  #     "s.user.user_token " <> token_resp ->
-  #       [_email, token] = String.split(token_resp, "\t")
-  #       {:ok, token}
-  #     resp -> {:error, "Error getting token: #{inspect resp}"}
-  #   end
-  # end
 
   @spec tachyon_send(pid(), map) :: :ok
   @spec tachyon_send(pid(), map, list) :: :ok
