@@ -2,7 +2,6 @@ defmodule Hailstorm.TachyonHelper do
   require Logger
   alias Hailstorm.TachyonWsServer, as: Ws
   alias Hailstorm.ListenerServer
-  alias Hailstorm.TachyonPbLib
 
   @type sslsocket() :: {:sslsocket, any, any}
 
@@ -11,7 +10,11 @@ defmodule Hailstorm.TachyonHelper do
 
   @spec get_websocket_url(String.t()) :: non_neg_integer()
   def get_websocket_url(token_value) do
-    query = URI.encode_query(%{"token" => token_value})
+    query = URI.encode_query(%{
+      "token" => token_value,
+      "client_hash" => "HailstormHash",
+      "client_name" => "Hailstorm"
+    })
     Application.get_env(:hailstorm, Hailstorm)[:websocket_url] <> "?#{query}"
   end
 
@@ -131,10 +134,9 @@ defmodule Hailstorm.TachyonHelper do
 
   @spec tachyon_send(pid(), map) :: :ok
   @spec tachyon_send(pid(), map, list) :: :ok
-  def tachyon_send(ws, object, metadata \\ []) do
-    type = TachyonPbLib.get_atom(object.__struct__)
-    binary = TachyonPbLib.client_wrap_and_encode({type, object}, metadata)
-    WebSockex.send_frame(ws, {:binary, binary})
+  def tachyon_send(ws, data, metadata \\ []) do
+    json = Jason.encode!(data)
+    WebSockex.send_frame(ws, {:text, json})
   end
 
   @spec read_messages(pid) :: list
@@ -158,7 +160,7 @@ defmodule Hailstorm.TachyonHelper do
         end
 
       result ->
-        result |> strip_metadata_from_messages
+        result
     end
   end
 
@@ -183,17 +185,8 @@ defmodule Hailstorm.TachyonHelper do
         end
 
       result ->
-        result |> strip_metadata_from_messages
+        result
     end
-  end
-
-  @spec strip_metadata_from_messages(list) :: list
-  def strip_metadata_from_messages(messages) do
-    messages
-      |> Enum.map(fn {{_type, object}, _metadata} ->
-        # Map.drop(object, [:__unknown_fields__])
-        object
-      end)
   end
 
   defmacro __using__(_opts) do

@@ -7,7 +7,6 @@ defmodule Hailstorm.ListenerServer do
   """
 
   use GenServer
-  alias Hailstorm.TachyonPbLib
 
   def new_listener() do
     {:ok, pid} = start_link()
@@ -28,10 +27,14 @@ defmodule Hailstorm.ListenerServer do
 
   # Internal
   # GenServer callbacks
-  def handle_info(item, state) do
-    msg = TachyonPbLib.server_decode_and_unwrap(item)
+  def handle_info({sys_message, reason}, state) do
+    {:noreply, [{sys_message, reason} | state]}
+  end
 
-    {:noreply, [msg | state]}
+  def handle_info(raw_json, state) do
+    object = Jason.decode!(raw_json)
+
+    {:noreply, [object | state]}
   end
 
   def handle_call(:pop, _from, state) do

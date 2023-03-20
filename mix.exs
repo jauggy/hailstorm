@@ -33,8 +33,7 @@ defmodule Hailstorm.MixProject do
       {:httpoison, "~> 1.8"},
 
       {:websockex, "~> 0.4.3"},
-      {:protobuf, "~> 0.11.0"},
-      {:google_protos, "~> 0.1"},
+      {:ex_json_schema, "~> 0.9.2"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
