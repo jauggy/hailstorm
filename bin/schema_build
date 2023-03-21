@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+curl -o priv/tachyon_schema.json https://raw.githubusercontent.com/beyond-all-reason/tachyon/master/schema.json
+

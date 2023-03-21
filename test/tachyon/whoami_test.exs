@@ -27,5 +27,6 @@ defmodule Hailstorm.Tests.WhoamiTest do
     response = hd(messages)
 
     assert response["data"]["name"] == "whoami_hailstorm"
+    assert valid?(response)
   end
 end

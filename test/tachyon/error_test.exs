@@ -76,4 +76,53 @@ defmodule Hailstorm.Tests.ErrorTest do
 
     refute Process.alive?(ws)
   end
+
+  test "test valid? function" do
+    good_data = %{
+      "command" => "account/who_am_i/response",
+      "data" => %{
+        "battle_status" => %{
+          "away" => false,
+          "bonus" => 0,
+          "clan_tag" => nil,
+          "faction" => "???",
+          "in_game" => false,
+          "is_player" => false,
+          "lobby_id" => nil,
+          "muted" => false,
+          "party_id" => nil,
+          "player_number" => 0,
+          "ready" => false,
+          "sync" => %{"engine" => 0, "game" => 0, "map" => 0},
+          "team_colour" => "0"
+        },
+        "clan_id" => nil,
+        "friend_requests" => [],
+        "friends" => [],
+        "icons" => %{},
+        "id" => 60168,
+        "ignores" => [],
+        "is_bot" => false,
+        "name" => "whoami_hailstorm",
+        "permissions" => nil,
+        "roles" => []
+      }
+    }
+
+    assert valid?(good_data)
+
+    bad_data = %{
+      "command" => "account/who_am_i/response",
+      "data" => %{
+        "clan_id" => nil,
+        "friend_requests" => [],
+        "friends" => [],
+        "is_bot" => false,
+        "name" => "whoami_hailstorm",
+        "permissions" => nil,
+        "roles" => []
+      }
+    }
+    assert valid?(bad_data)
+  end
 end

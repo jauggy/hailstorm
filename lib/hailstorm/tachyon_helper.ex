@@ -189,6 +189,27 @@ defmodule Hailstorm.TachyonHelper do
     end
   end
 
+  def valid?(%{"command" => command, "data" => data} = o) do
+    schema = get_schema(command)
+
+    IO.puts ""
+    IO.inspect schema
+    IO.inspect o
+    IO.inspect ExJsonSchema.Validator.validate(schema, o)
+    IO.puts ""
+
+    case ExJsonSchema.Validator.validate(schema, o) do
+      :ok ->
+        true
+      failure ->
+        failure
+    end
+  end
+
+  defp get_schema(command) do
+    ConCache.get(:tachyon_schemas, command)
+  end
+
   defmacro __using__(_opts) do
     quote do
       import Hailstorm.TachyonHelper, only: [
@@ -197,7 +218,8 @@ defmodule Hailstorm.TachyonHelper do
         read_messages: 2,
         pop_messages: 1,
         pop_messages: 2,
-        new_connection: 1
+        new_connection: 1,
+        valid?: 1
       ]
       alias Hailstorm.TachyonHelper
       alias Tachyon
