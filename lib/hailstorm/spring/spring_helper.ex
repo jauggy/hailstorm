@@ -45,6 +45,32 @@ defmodule Hailstorm.SpringHelper do
     end
   end
 
+  @spec new_raw_connection(String.t(), String.t()) :: {:ok, sslsocket(), map} | {:error, String.t()}
+  def new_raw_connection(name, email) do
+    {:ok, socket} = get_socket()
+    spring_recv_until(socket)
+
+    # Send registration
+    spring_send(socket, "REGISTER #{name} password #{email}")
+    spring_recv(socket)
+
+    # Now login
+    cmd = "LOGIN #{name} password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
+    spring_send(socket, cmd)
+    response = socket
+      |> spring_recv_until
+      |> split_commands
+
+    commands = response
+      |> Map.new
+
+    if Map.has_key?(commands, "LOGININFOEND") do
+      socket
+    else
+      raise "Unable to login - #{inspect response}"
+    end
+  end
+
   @spec server_exists? :: boolean
   def server_exists?() do
     case get_socket() do

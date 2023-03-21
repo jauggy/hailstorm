@@ -24,6 +24,25 @@ defmodule Hailstorm.WebHelper do
     HTTPoison.get(url)
   end
 
+  @spec post(String.t(), map()) :: %HTTPoison.AsyncResponse{} | %HTTPoison.Response{}
+  def post(path, body) do
+    {:ok, resp} = do_post(path, body)
+    resp
+  end
+
+  @spec do_post(String.t(), map()) ::
+          {:error, HTTPoison.Error.t()}
+          | {:ok, %HTTPoison.AsyncResponse{}}
+          | {:ok, %HTTPoison.Response{}}
+  def do_post(path, body) do
+    body_json = Jason.encode!(body)
+    url = Application.get_env(:hailstorm, Hailstorm)[:host_web_url] <> path
+    headers = [{"Content-Type", "application/json"}]
+    opts = []
+
+    HTTPoison.post(url, body_json, headers, opts)
+  end
+
   @spec set_hailstorm_config(String.t(), String.t()) :: :ok | {:error, String.t()}
   def set_hailstorm_config(key, value) do
     url = [

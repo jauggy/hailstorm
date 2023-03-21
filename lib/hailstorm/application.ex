@@ -7,6 +7,9 @@ defmodule Hailstorm.Application do
   def start(_type, _args) do
     children = [
       concache_perm_sup(:tachyon_schemas),
+
+      {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.SpringSupervisor},
+      {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.TachyonSupervisor},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
