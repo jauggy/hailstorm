@@ -6,8 +6,11 @@ defmodule Hailstorm.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Phoenix.PubSub, name: Hailstorm.PubSub},
+
       concache_perm_sup(:tachyon_schemas),
 
+      {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.MonitorSupervisor},
       {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.SpringSupervisor},
       {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.TachyonSupervisor},
     ]

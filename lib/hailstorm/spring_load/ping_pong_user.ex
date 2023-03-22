@@ -1,4 +1,7 @@
 defmodule Hailstorm.SpringLoad.PingPongUser do
+  @moduledoc """
+
+  """
   use GenServer
   alias Hailstorm.SpringHelper
 
@@ -9,7 +12,15 @@ defmodule Hailstorm.SpringLoad.PingPongUser do
   end
 
   def handle_info(:ping, state) do
-    SpringHelper.spring_send(state.socket, "PING")
+    msg_id = :random.uniform() * 100000 |> round()
+    sent_at = System.system_time(:millisecond)
+    SpringHelper.spring_send(state.socket, "##{msg_id} PING", false)
+
+    messages = SpringHelper.spring_recv_until(state.socket)
+
+    IO.puts ""
+    IO.inspect messages
+    IO.puts ""
 
     {:noreply, state}
   end
@@ -23,6 +34,8 @@ defmodule Hailstorm.SpringLoad.PingPongUser do
     socket = login(args.name, args.email)
 
     {:ok, %{
+      msg_id: nil,
+      sent_at: nil,
       socket: socket
     }}
   end
