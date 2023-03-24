@@ -38,13 +38,29 @@ defmodule Hailstorm.Application do
     )
   end
 
+  @spec load_schemas :: list
   def load_schemas() do
     "priv/tachyon_schema.json"
       |> File.read!
       |> Jason.decode!
-      |> Enum.each(fn json_def ->
-        schema = ExJsonSchema.Schema.resolve(json_def)
-        ConCache.put(:tachyon_schemas, json_def["$id"], schema)
+      |> Map.get("properties")
+      |> Enum.map(fn {_section_key, section} ->
+        section
+        |> Map.get("properties")
+        |> Enum.map(fn {_cmd_name, cmd} ->
+          [
+            cmd["properties"]["request"],
+            cmd["properties"]["response"]
+          ]
+        end)
+      end)
+      |> List.flatten
+      |> Enum.map(fn json_def ->
+        schema = JsonXema.new(json_def)
+        command = get_in(json_def, ~w(properties command const))
+
+        ConCache.put(:tachyon_schemas, command, schema)
+        json_def["$id"]
       end)
   end
 end

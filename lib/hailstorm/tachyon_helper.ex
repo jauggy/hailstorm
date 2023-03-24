@@ -115,7 +115,8 @@ defmodule Hailstorm.TachyonHelper do
     data = %{
       email: email,
       attrs: params
-    } |> Jason.encode!
+    }
+    |> Jason.encode!
 
     result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
       {:ok, resp} ->
@@ -134,7 +135,7 @@ defmodule Hailstorm.TachyonHelper do
 
   @spec tachyon_send(pid(), map) :: :ok
   @spec tachyon_send(pid(), map, list) :: :ok
-  def tachyon_send(ws, data, metadata \\ []) do
+  def tachyon_send(ws, data, _metadata \\ []) do
     json = Jason.encode!(data)
     WebSockex.send_frame(ws, {:text, json})
   end
@@ -189,21 +190,10 @@ defmodule Hailstorm.TachyonHelper do
     end
   end
 
-  def valid?(%{"command" => command, "data" => data} = o) do
+  @spec validate!(map) :: :ok
+  def validate!(%{"command" => command} = object) do
     schema = get_schema(command)
-
-    IO.puts ""
-    IO.inspect schema
-    IO.inspect o
-    IO.inspect ExJsonSchema.Validator.validate(schema, o)
-    IO.puts ""
-
-    case ExJsonSchema.Validator.validate(schema, o) do
-      :ok ->
-        true
-      failure ->
-        failure
-    end
+    JsonXema.validate!(schema, object)
   end
 
   defp get_schema(command) do
@@ -219,7 +209,7 @@ defmodule Hailstorm.TachyonHelper do
         pop_messages: 1,
         pop_messages: 2,
         new_connection: 1,
-        valid?: 1
+        validate!: 1
       ]
       alias Hailstorm.TachyonHelper
       alias Tachyon
