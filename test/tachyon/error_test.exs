@@ -54,6 +54,21 @@ defmodule Hailstorm.Tests.ErrorTest do
 
     assert exit_message == {:ws_terminate, {:remote, 1011, ""}}
     refute Process.alive?(ws)
+
+    # Make a new connection
+    {:ok, ws, ls} = new_connection(%{name: "error"})
+
+    tachyon_send(ws, %{
+      "command" => "force_error",
+      "data" => %{"command" => "account/who_am_i/response"}
+    })
+
+    exit_message = pop_messages(ls, 500)
+      |> Enum.reverse()
+      |> hd
+
+    assert exit_message == {:ws_terminate, {:remote, 1011, ""}}
+    refute Process.alive?(ws)
   end
 
   test "test disconnect command" do
