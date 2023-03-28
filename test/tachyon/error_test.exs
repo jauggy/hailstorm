@@ -77,7 +77,7 @@ defmodule Hailstorm.Tests.ErrorTest do
     refute Process.alive?(ws)
   end
 
-  test "test valid? function" do
+  test "test validate! function" do
     good_data = %{
       "command" => "account/who_am_i/response",
       "data" => %{
@@ -104,12 +104,12 @@ defmodule Hailstorm.Tests.ErrorTest do
         "ignores" => [],
         "is_bot" => false,
         "name" => "whoami_hailstorm",
-        "permissions" => nil,
+        "permissions" => [],
         "roles" => []
       }
     }
 
-    assert valid?(good_data)
+    assert validate!(good_data)
 
     bad_data = %{
       "command" => "account/who_am_i/response",
@@ -123,6 +123,6 @@ defmodule Hailstorm.Tests.ErrorTest do
         "roles" => []
       }
     }
-    assert valid?(bad_data)
+    assert_raise JsonXema.ValidationError, fn -> validate!(bad_data) end
   end
 end

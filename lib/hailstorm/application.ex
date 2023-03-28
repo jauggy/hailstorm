@@ -55,6 +55,7 @@ defmodule Hailstorm.Application do
         end)
       end)
       |> List.flatten
+      |> Enum.reject(&(&1 == nil))
       |> Enum.map(fn json_def ->
         schema = JsonXema.new(json_def)
         command = get_in(json_def, ~w(properties command const))
