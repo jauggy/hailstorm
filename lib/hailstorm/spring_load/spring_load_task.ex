@@ -25,19 +25,21 @@ defmodule Mix.Tasks.Hailstorm.Springload do
       ]
     )
 
+    IO.puts "Starting load test"
+
     # IO.puts ""
     # IO.inspect args
     # IO.inspect kwargs
     # IO.puts ""
 
-    user_module = case kwargs[:module] do
+    user_module = case kwargs[:module] || "status" do
       "status" -> Hailstorm.SpringLoad.MystatusUser
       m -> raise "No --module handler for '#{m}'"
     end
 
     Mix.Task.run("app.start")
 
-    if kwargs[:monitor] do
+    if kwargs[:monitor] != false do
       {:ok, _pid} = DynamicSupervisor.start_child(Hailstorm.MonitorSupervisor, {
         Hailstorm.Servers.MetricServer,
         name: "metric_server",
@@ -45,7 +47,7 @@ defmodule Mix.Tasks.Hailstorm.Springload do
       })
     end
 
-    if kwargs[:pingpong] do
+    if kwargs[:pingpong] != false do
       {:ok, _pid} = DynamicSupervisor.start_child(Hailstorm.MonitorSupervisor, {
         Hailstorm.SpringLoad.PingPongUser,
         name: "ping_pong",
@@ -56,7 +58,7 @@ defmodule Mix.Tasks.Hailstorm.Springload do
       })
     end
 
-    0..3#10_000
+    0..10_000
     |> Enum.each(fn i ->
       name = "hs_springload_#{i}"
       email = "hs_springload_#{i}@hailstorm"
@@ -69,8 +71,12 @@ defmodule Mix.Tasks.Hailstorm.Springload do
           email: email
         }
       })
+
+      :timer.sleep(250)
     end)
 
-    :timer.sleep(1000)
+    :timer.sleep(25_000)
+
+    IO.puts "Load test complete"
   end
 end

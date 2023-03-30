@@ -4,6 +4,7 @@ defmodule Hailstorm.SpringLoad.PingPongUser do
   """
   use GenServer
   alias Hailstorm.SpringHelper
+  alias Hailstorm.Servers.MetricServer
 
   @ping_interval 3_000
 
@@ -12,17 +13,39 @@ defmodule Hailstorm.SpringLoad.PingPongUser do
   end
 
   def handle_info(:ping, state) do
-    msg_id = :random.uniform() * 100000 |> round()
+    msg_id = :rand.uniform() * 100000 |> round()
     sent_at = System.system_time(:millisecond)
     SpringHelper.spring_send(state.socket, "##{msg_id} PING", false)
 
-    messages = SpringHelper.spring_recv_until(state.socket)
+    messages = wait_for_pong(state, msg_id)
+    received_at = System.system_time(:millisecond)
 
-    IO.puts ""
-    IO.inspect messages
-    IO.puts ""
+    time_taken = received_at - sent_at
+    message_count = Enum.count(messages)
+
+    MetricServer.report_measure("messages", message_count)
+    MetricServer.report_measure("time_taken", time_taken)
+
+    :timer.send_after(@ping_interval, :ping)
 
     {:noreply, state}
+  end
+
+  defp wait_for_pong(state, msg_id, messages \\ []) do
+    new_messages = SpringHelper.spring_recv_until(state.socket)
+      |> String.split("\n")
+
+    pong = new_messages
+      |> Enum.filter(fn msg ->
+        String.contains?(msg, "##{msg_id} PONG")
+      end)
+
+    combined = messages ++ new_messages
+
+    case pong do
+      [] -> wait_for_pong(state, msg_id, combined)
+      _ -> combined
+    end
   end
 
   defp login(name, email) do
@@ -30,8 +53,8 @@ defmodule Hailstorm.SpringLoad.PingPongUser do
   end
 
   def init(args) do
-    :timer.send_interval(@ping_interval, :ping)
     socket = login(args.name, args.email)
+    send(self(), :ping)
 
     {:ok, %{
       msg_id: nil,

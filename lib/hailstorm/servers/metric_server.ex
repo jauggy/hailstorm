@@ -4,12 +4,29 @@ defmodule Hailstorm.Servers.MetricServer do
 
   @tick_period 1_000
 
+  def report_increment(key) do
+    PubSub.broadcast(
+      Hailstorm.PubSub,
+      "internal_metric_report",
+      {:increment, key}
+    )
+  end
+
+  @spec report_measure(any, any) :: :ok | {:error, any}
+  def report_measure(key, value) do
+    PubSub.broadcast(
+      Hailstorm.PubSub,
+      "internal_metric_report",
+      {:measure, key, value}
+    )
+  end
+
   @impl true
   def handle_info(:tick, state) do
     new_state = state
       |> calculate_metrics()
       |> report_metrics()
-      |> reset_counters()
+      # |> reset_counters()
 
     {:noreply, new_state}
   end
@@ -26,7 +43,6 @@ defmodule Hailstorm.Servers.MetricServer do
     {:noreply, %{state | measures: new_measures}}
   end
 
-  @impl true
   def handle_info({:spring_messages_sent, _userid, server_count, _batch_count, client_count}, state) do
     {:noreply, %{state |
       spring_server_messages_sent: state.spring_server_messages_sent + server_count,
@@ -48,7 +64,8 @@ defmodule Hailstorm.Servers.MetricServer do
 
   defp report_metrics(state) do
     IO.puts ""
-    IO.inspect state.metrics
+    IO.inspect state.counters, label: "counters"
+    IO.inspect state.measures, label: "measurers"
     IO.puts ""
 
     PubSub.broadcast(
@@ -56,6 +73,7 @@ defmodule Hailstorm.Servers.MetricServer do
       "report_metrics",
       state.metrics
     )
+
     state
   end
 
@@ -75,7 +93,7 @@ defmodule Hailstorm.Servers.MetricServer do
   @impl true
   def init(_opts) do
     :timer.send_interval(@tick_period, self(), :tick)
-    :ok = PubSub.subscribe(Hailstorm.PubSub, "metric_reports")
+    :ok = PubSub.subscribe(Hailstorm.PubSub, "internal_metric_report")
 
     {:ok, reset_counters(%{metrics: %{}})}
   end
