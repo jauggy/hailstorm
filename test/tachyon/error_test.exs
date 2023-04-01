@@ -56,6 +56,7 @@ defmodule Hailstorm.Tests.ErrorTest do
     refute Process.alive?(ws)
 
     # Make a new connection
+    # This should fail because we're sending back an bad response, it will kill the socket
     {:ok, ws, ls} = new_connection(%{name: "error"})
 
     tachyon_send(ws, %{
