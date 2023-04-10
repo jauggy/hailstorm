@@ -40,7 +40,6 @@ defmodule Hailstorm.TachyonHelper do
       {:ok, token} <- get_token(params),
       listener <- ListenerServer.new_listener(),
       {:ok, ws} <- get_socket(token, listener)
-      # :ok <- login(ws, params.email)
     do
       {:ok, ws, listener}
     else
@@ -112,11 +111,10 @@ defmodule Hailstorm.TachyonHelper do
       "teiserver/api/hailstorm/ts_update_user"
     ] |> Enum.join("/")
 
-    data = %{
+    data = Jason.encode!(%{
       email: email,
       attrs: params
-    }
-    |> Jason.encode!
+    })
 
     result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
       {:ok, resp} ->
@@ -165,6 +163,24 @@ defmodule Hailstorm.TachyonHelper do
     end
   end
 
+  @spec whoami(pid, pid) :: any
+  def whoami(ws, ls) do
+    tachyon_send(ws, %{
+      "command" => "account/who_am_i/request",
+      "data" => %{}
+    })
+
+    messages = pop_messages(ls, 500)
+      |> Enum.filter(fn
+        %{"command" => "account/who_am_i/response"} -> true
+        _ -> false
+      end)
+
+    messages
+      |> hd()
+      |> Map.get("data")
+  end
+
   @spec pop_messages(pid) :: list
   def pop_messages(ls), do: pop_messages(ls, 500)
 
@@ -209,6 +225,7 @@ defmodule Hailstorm.TachyonHelper do
         pop_messages: 1,
         pop_messages: 2,
         new_connection: 1,
+        whoami: 2,
         validate!: 1
       ]
       alias Hailstorm.TachyonHelper

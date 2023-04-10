@@ -24,6 +24,7 @@ defmodule Hailstorm.Tests.CreateLobbyTest do
 
   test "create lobby tests" do
     {:ok, ws, ls} = new_connection(@create_lobby_user_params)
+    userid = whoami(ws, ls) |> Map.get("id")
 
     # No name
     tachyon_send(ws, %{
@@ -89,6 +90,7 @@ defmodule Hailstorm.Tests.CreateLobbyTest do
     response = hd(messages)
 
     assert response["data"]["founder_name"] == "create_lobby_hailstorm"
+    assert response["data"]["founder_id"] == userid
     # validate!(response)
 
     # Ensure the lobby is there if we list lobbies
@@ -105,6 +107,10 @@ defmodule Hailstorm.Tests.CreateLobbyTest do
     assert Enum.count(messages) == 1
     response = hd(messages)
 
-    _lobbies = response["data"]["lobbies"]
+    lobbies = response["data"]["lobbies"]
+    assert Enum.count(lobbies) == 1
+
+    lobby = hd(lobbies)
+    assert lobby["founder_id"] == userid
   end
 end
