@@ -254,6 +254,7 @@ defmodule Hailstorm.TachyonHelper do
       "engine_version" => "",
       "map_name" => "Best map ever",
       "game_name" => "bar-123",
+      "locked" => false
     }, data)
 
     cmd_data = %{

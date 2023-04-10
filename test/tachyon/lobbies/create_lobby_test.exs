@@ -16,6 +16,7 @@ defmodule Hailstorm.Lobbies.CreateLobbyTest do
     "engine_version" => "",
     "map_name" => "Best map ever",
     "game_name" => "bar-123",
+    "locked" => false
   }
 
   @create_lobby_user_params %{
