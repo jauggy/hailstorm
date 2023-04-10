@@ -1,4 +1,4 @@
-defmodule Hailstorm.Tests.CreateLobbyTest do
+defmodule Hailstorm.Lobbies.CreateLobbyTest do
   @moduledoc """
   Tests the Ping command
   """
@@ -23,68 +23,60 @@ defmodule Hailstorm.Tests.CreateLobbyTest do
   }
 
   test "create lobby tests" do
-    {:ok, ws, ls} = new_connection(@create_lobby_user_params)
-    userid = whoami(ws, ls) |> Map.get("id")
+    {:ok, client} = new_connection(@create_lobby_user_params)
+    userid = whoami(client) |> Map.get("id")
 
     # No name
-    tachyon_send(ws, %{
+    cmd = %{
       "command" => "lobby_host/create/request",
       "data" => Map.put(@valid_data, "name", "")
-    })
-
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "system/error/response"} -> true
-        _ -> false
-      end)
+    }
+    messages = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "system/error/response"} -> true
+      _ -> false
+    end)
 
     assert Enum.count(messages) == 1
     response = hd(messages)
     assert response["data"]["reason"] == "No lobby name supplied"
 
     # Generate error - Bad type
-    tachyon_send(ws, %{
+    cmd = %{
       "command" => "lobby_host/create/request",
       "data" => Map.put(@valid_data, "type", "bad-type")
-    })
-
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "system/error/response"} -> true
-        _ -> false
-      end)
+    }
+    messages = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "system/error/response"} -> true
+      _ -> false
+    end)
 
     assert Enum.count(messages) == 1
     response = hd(messages)
     assert response["data"]["reason"] == "Invalid type 'bad-type'"
 
     # Generate error - Bad nattype
-    tachyon_send(ws, %{
+    cmd = %{
       "command" => "lobby_host/create/request",
       "data" => Map.put(@valid_data, "nattype", "bad-type")
-    })
-
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "system/error/response"} -> true
-        _ -> false
-      end)
+    }
+    messages = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "system/error/response"} -> true
+      _ -> false
+    end)
 
     assert Enum.count(messages) == 1
     response = hd(messages)
     assert response["data"]["reason"] == "Invalid nattype 'bad-type'"
 
     # Now do it properly
-    tachyon_send(ws, %{
+    cmd = %{
       "command" => "lobby_host/create/request",
       "data" => @valid_data
-    })
-
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "lobby_host/create/response"} -> true
-        _ -> false
-      end)
+    }
+    messages = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "lobby_host/create/response"} -> true
+      _ -> false
+    end)
 
     assert Enum.count(messages) == 1
     response = hd(messages)
@@ -94,15 +86,14 @@ defmodule Hailstorm.Tests.CreateLobbyTest do
     # validate!(response)
 
     # Ensure the lobby is there if we list lobbies
-    tachyon_send(ws, %{
+    cmd = %{
       "command" => "lobby/list_lobbies/request",
       "data" => %{}
-    })
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "lobby/list_lobbies/response"} -> true
-        _ -> false
-      end)
+    }
+    messages = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "lobby/list_lobbies/response"} -> true
+      _ -> false
+    end)
 
     assert Enum.count(messages) == 1
     response = hd(messages)

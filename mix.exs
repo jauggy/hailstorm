@@ -34,6 +34,7 @@ defmodule Hailstorm.MixProject do
 
       {:websockex, "~> 0.4.3"},
       {:json_xema, "~> 0.3"},
+      {:ex_ulid, "~> 0.1.0"},
 
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]

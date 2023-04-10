@@ -22,12 +22,18 @@ defmodule Hailstorm.TachyonHelper do
   def get_password(), do: Application.get_env(:hailstorm, Hailstorm)[:password]
 
   defp cleanup_params(params) do
-    email = Map.get(params, :email, params.name) <> "@hailstorm_tachyon"
-    Map.put(params, :email, email)
+    params = params || %{}
+    name = Map.get(params, :name, ExULID.ULID.generate()) |> to_string
+    email = Map.get(params, :email, name) <> "@hailstorm_tachyon"
+
+    Map.merge(params, %{
+      name: name,
+      email: email
+    })
   end
 
   @spec new_connection(map()) :: {:ok, pid(), pid()} | {:error, String.t()}
-  def new_connection(params) do
+  def new_connection(params \\ %{}) do
     params = cleanup_params(params)
 
     with :ok <- create_user(params),
@@ -41,7 +47,7 @@ defmodule Hailstorm.TachyonHelper do
       listener <- ListenerServer.new_listener(),
       {:ok, ws} <- get_socket(token, listener)
     do
-      {:ok, ws, listener}
+      {:ok, {ws, listener}}
     else
       failure -> failure
     end
@@ -131,18 +137,32 @@ defmodule Hailstorm.TachyonHelper do
     end
   end
 
-  @spec tachyon_send(pid(), map) :: :ok
-  @spec tachyon_send(pid(), map, list) :: :ok
-  def tachyon_send(ws, data, _metadata \\ []) do
+  @spec tachyon_send_and_receive({pid, pid}, map) :: any
+  def tachyon_send_and_receive(client, data) do
+    tachyon_send_and_receive(client, data, fn _ -> true end, [])
+  end
+
+  @spec tachyon_send_and_receive({pid, pid}, map, function, list) :: any
+  def tachyon_send_and_receive({ws, _ls} = client, data, filter_func, opts \\ []) do
+    json = Jason.encode!(data)
+    WebSockex.send_frame(ws, {:text, json})
+
+    pop_messages(client, opts[:timeout] || 500)
+      |> Enum.filter(filter_func)
+  end
+
+  @spec tachyon_send({pid, pid}, map) :: :ok
+  @spec tachyon_send({pid, pid}, map, list) :: :ok
+  def tachyon_send({ws, _}, data, _metadata \\ []) do
     json = Jason.encode!(data)
     WebSockex.send_frame(ws, {:text, json})
   end
 
-  @spec read_messages(pid) :: list
-  def read_messages(ls), do: read_messages(ls, 500)
+  @spec read_messages({pid, pid}) :: list
+  def read_messages(client), do: read_messages(client, 500)
 
-  @spec read_messages(pid, non_neg_integer()) :: list
-  def read_messages(ls, timeout) do
+  @spec read_messages({pid, pid}, non_neg_integer()) :: list
+  def read_messages({_ws, ls}, timeout) do
     do_read_messages(ls, timeout, System.system_time(:millisecond))
   end
 
@@ -163,29 +183,11 @@ defmodule Hailstorm.TachyonHelper do
     end
   end
 
-  @spec whoami(pid, pid) :: any
-  def whoami(ws, ls) do
-    tachyon_send(ws, %{
-      "command" => "account/who_am_i/request",
-      "data" => %{}
-    })
+  @spec pop_messages({pid, pid}) :: list
+  def pop_messages(client), do: pop_messages(client, 500)
 
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "account/who_am_i/response"} -> true
-        _ -> false
-      end)
-
-    messages
-      |> hd()
-      |> Map.get("data")
-  end
-
-  @spec pop_messages(pid) :: list
-  def pop_messages(ls), do: pop_messages(ls, 500)
-
-  @spec pop_messages(pid, non_neg_integer()) :: list
-  def pop_messages(ls, timeout) do
+  @spec pop_messages({pid, pid}, non_neg_integer()) :: list
+  def pop_messages({_ws, ls}, timeout) do
     do_pop_messages(ls, timeout, System.system_time(:millisecond))
   end
 
@@ -216,17 +218,82 @@ defmodule Hailstorm.TachyonHelper do
     ConCache.get(:tachyon_schemas, command)
   end
 
+  # Now for command shortcuts
+  @spec whoami({pid, pid}) :: map()
+  def whoami(client) do
+    cmd_data = %{
+      "command" => "account/who_am_i/request",
+      "data" => %{}
+    }
+
+    messages = tachyon_send_and_receive(client, cmd_data, fn
+      %{"command" => "account/who_am_i/response"} -> true
+      _ -> false
+    end)
+
+    messages
+      |> hd()
+      |> Map.get("data")
+  end
+
+  @spec create_lobby({pid, pid}) :: map
+  def create_lobby(client) do
+    create_lobby(client, %{"name" => ExULID.ULID.generate()})
+  end
+
+  @spec create_lobby({pid, pid}, map) :: map
+  def create_lobby(client, data) do
+    lobby_data = Map.merge(%{
+      "name" => ExULID.ULID.generate(),
+      "type" => "normal",
+      "nattype" => "none",
+      "port" => 1234,
+      "game_hash" => "hash-here",
+      "map_hash" => "hash-here",
+      "engine_name" => "",
+      "engine_version" => "",
+      "map_name" => "Best map ever",
+      "game_name" => "bar-123",
+    }, data)
+
+    cmd_data = %{
+      "command" => "lobby_host/create/request",
+      "data" => lobby_data
+    }
+
+    tachyon_send_and_receive(client, cmd_data, fn
+      %{"command" => "lobby_host/create/response"} -> true
+      _ -> false
+    end)
+    |> hd
+    |> Map.get("data")
+  end
+
+  @spec join_lobby({pid, pid}, non_neg_integer()) :: map
+  def join_lobby(client, lobby_id) do
+    %{}
+  end
+
   defmacro __using__(_opts) do
     quote do
       import Hailstorm.TachyonHelper, only: [
         tachyon_send: 2,
+        tachyon_send_and_receive: 2,
+        tachyon_send_and_receive: 3,
+        tachyon_send_and_receive: 4,
         read_messages: 1,
         read_messages: 2,
         pop_messages: 1,
         pop_messages: 2,
+        new_connection: 0,
         new_connection: 1,
-        whoami: 2,
-        validate!: 1
+        validate!: 1,
+
+        # Commands
+        whoami: 1,
+        create_lobby: 1,
+        create_lobby: 2,
+        join_lobby: 2
       ]
       alias Hailstorm.TachyonHelper
       alias Tachyon

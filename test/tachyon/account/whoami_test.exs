@@ -1,6 +1,6 @@
-defmodule Hailstorm.Tests.WhoamiTest do
+defmodule Hailstorm.Account.WhoamiTest do
   @moduledoc """
-  Tests the Ping command
+  Tests the whoami request
   """
   use ExUnit.Case, async: true
   use Hailstorm.TachyonHelper
@@ -10,18 +10,16 @@ defmodule Hailstorm.Tests.WhoamiTest do
   }
 
   test "test" do
-    {:ok, ws, ls} = new_connection(@whoami_user_params)
-
-    tachyon_send(ws, %{
+    {:ok, client} = new_connection(@whoami_user_params)
+    cmd_data = %{
       "command" => "account/who_am_i/request",
       "data" => %{}
-    })
+    }
 
-    messages = pop_messages(ls, 500)
-      |> Enum.filter(fn
-        %{"command" => "account/who_am_i/response"} -> true
-        _ -> false
-      end)
+    messages = tachyon_send_and_receive(client, cmd_data, fn
+      %{"command" => "account/who_am_i/response"} -> true
+      _ -> false
+    end)
 
     assert Enum.count(messages) == 1
     response = hd(messages)
