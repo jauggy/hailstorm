@@ -45,27 +45,35 @@ defmodule Hailstorm.SpringHelper do
     end
   end
 
-  @spec new_raw_connection(String.t(), String.t()) :: {:ok, sslsocket(), map} | {:error, String.t()}
+  @spec new_raw_connection(String.t(), String.t()) :: {{:ok, sslsocket(), map}, list} | {:error, String.t()}
   def new_raw_connection(name, email) do
     {:ok, socket} = get_socket()
     spring_recv_until(socket)
 
     # Send registration
     spring_send(socket, "REGISTER #{name} password #{email}")
-    spring_recv(socket)
+    r = spring_recv_until(socket)
+
+    case r do
+      "REGISTRATIONDENIED Username already taken\n" -> :ok
+      "REGISTRATIONACCEPTED\n" -> :ok
+    end
 
     # Now login
     cmd = "LOGIN #{name} password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
+    # "hs_springload_0 password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
+    # "LOGIN hs_springload_0 password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
+
     spring_send(socket, cmd)
     response = socket
-      |> spring_recv_until
+      |> spring_recv_until(2500)
       |> split_commands
 
     commands = response
       |> Map.new
 
     if Map.has_key?(commands, "LOGININFOEND") do
-      socket
+      {socket, response}
     else
       raise "Unable to login - #{inspect response}"
     end
@@ -210,7 +218,7 @@ defmodule Hailstorm.SpringHelper do
   end
 
   def spring_recv(socket = {:sslsocket, _, _}) do
-    case :ssl.recv(socket, 0, 500) do
+    case :ssl.recv(socket, 0, 1500) do
       {:ok, reply} -> reply |> to_string |> String.trim()
       {:error, :timeout} -> :timeout
       {:error, :closed} -> :closed
@@ -219,28 +227,29 @@ defmodule Hailstorm.SpringHelper do
   end
 
   def spring_recv(socket) do
-    case :gen_tcp.recv(socket, 0, 500) do
+    case :gen_tcp.recv(socket, 0, 1500) do
       {:ok, reply} -> reply |> to_string |> String.trim()
       {:error, :timeout} -> :timeout
       {:error, :closed} -> :closed
     end
   end
 
-  def spring_recv_until(socket), do: spring_recv_until(socket, "")
-  def spring_recv_until(socket = {:sslsocket, _, _}, acc) do
-    case :ssl.recv(socket, 0, 500) do
+  def spring_recv_until(socket, timeout \\ 1500), do: do_spring_recv_until(socket, "", timeout)
+
+  defp do_spring_recv_until(socket = {:sslsocket, _, _}, acc, timeout) do
+    case :ssl.recv(socket, 0, timeout) do
       {:ok, reply} ->
-        spring_recv_until(socket, acc <> to_string(reply))
+        do_spring_recv_until(socket, acc <> to_string(reply), timeout)
 
       {:error, :timeout} ->
         acc
     end
   end
 
-  def spring_recv_until(socket, acc) do
-    case :gen_tcp.recv(socket, 0, 500) do
+  defp do_spring_recv_until(socket, acc, timeout) do
+    case :gen_tcp.recv(socket, 0, timeout) do
       {:ok, reply} ->
-        spring_recv_until(socket, acc <> to_string(reply))
+        do_spring_recv_until(socket, acc <> to_string(reply), timeout)
 
       {:error, :timeout} ->
         acc

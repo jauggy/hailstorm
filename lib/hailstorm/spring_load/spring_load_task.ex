@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Hailstorm.Springload do
   Run with mix hailstorm.springload
 
   --module=status
+  mix hailstorm.springload --module=bouncearound
 
   -m : metric monitor
   -p : ping_pong user
@@ -34,12 +35,13 @@ defmodule Mix.Tasks.Hailstorm.Springload do
 
     user_module = case kwargs[:module] || "status" do
       "status" -> Hailstorm.SpringLoad.MystatusUser
+      "bouncearound" -> Hailstorm.SpringLoad.BouncearoundUser
       m -> raise "No --module handler for '#{m}'"
     end
 
     Mix.Task.run("app.start")
 
-    if kwargs[:monitor] != false do
+    if kwargs[:monitor] != nil do
       {:ok, _pid} = DynamicSupervisor.start_child(Hailstorm.MonitorSupervisor, {
         Hailstorm.Servers.MetricServer,
         name: "metric_server",
@@ -47,7 +49,7 @@ defmodule Mix.Tasks.Hailstorm.Springload do
       })
     end
 
-    if kwargs[:pingpong] != false do
+    if kwargs[:pingpong] != nil do
       {:ok, _pid} = DynamicSupervisor.start_child(Hailstorm.MonitorSupervisor, {
         Hailstorm.SpringLoad.PingPongUser,
         name: "ping_pong",
@@ -58,7 +60,8 @@ defmodule Mix.Tasks.Hailstorm.Springload do
       })
     end
 
-    0..10_000
+    # 0..10_000
+    0..500
     |> Enum.each(fn i ->
       name = "hs_springload_#{i}"
       email = "hs_springload_#{i}@hailstorm"
@@ -72,10 +75,15 @@ defmodule Mix.Tasks.Hailstorm.Springload do
         }
       })
 
-      :timer.sleep(250)
+      IO.puts i
+
+      delay = (i * 100) |> max(1000) |> min(3_000)
+      :timer.sleep(delay)
     end)
 
-    :timer.sleep(25_000)
+    IO.puts "Accounts connected, waiting"
+
+    :timer.sleep(25_000_000)
 
     IO.puts "Load test complete"
   end

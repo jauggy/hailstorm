@@ -49,7 +49,8 @@ defmodule Hailstorm.SpringLoad.PingPongUser do
   end
 
   defp login(name, email) do
-    SpringHelper.new_raw_connection(name, email)
+    {socket, _} = SpringHelper.new_raw_connection(name, email)
+    socket
   end
 
   def init(args) do
