@@ -1,13 +1,11 @@
-defmodule Tachyon.Lobbies.JoinLobbyTest do
+defmodule Tachyon.Lobbies.ListLobbyTest do
   @moduledoc """
   Tests consul commands
   """
   use ExUnit.Case, async: true
   use Hailstorm.TachyonHelper
 
-  # status s y n follow joinq leaveq splitlobby afks roll players password? explain newlobby jazlobby tournament
-
-  test "join lobby" do
+  test "list lobby" do
     {:ok, host} = new_connection()
     lobby = create_lobby(host)
 
@@ -33,5 +31,9 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     :timer.sleep(1_000)
 
     assert true
+  end
+
+  test "get lobby" do
+
   end
 end
