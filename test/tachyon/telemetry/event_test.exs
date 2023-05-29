@@ -6,7 +6,7 @@ defmodule Tachyon.Telemetry.EventTest do
   use Hailstorm.TachyonHelper
 
   test "event" do
-    {:ok, user} = new_connection()
+    {:ok, client} = new_connection()
 
     cmd = %{
       "command" => "telemetry/event/request",

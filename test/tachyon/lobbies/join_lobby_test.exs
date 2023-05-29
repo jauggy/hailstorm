@@ -28,7 +28,7 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     response = hd(messages)
 
     assert response["data"]["result"] == "waiting_on_host"
-    # validate!(response)
+    validate!(response)
 
     :timer.sleep(1_000)
 

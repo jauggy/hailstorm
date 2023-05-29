@@ -40,28 +40,36 @@ defmodule Hailstorm.Application do
 
   @spec load_schemas :: list
   def load_schemas() do
-    "priv/tachyon_schema.json"
-      |> File.read!
-      |> Jason.decode!
-      |> Map.get("properties")
-      |> Enum.map(fn {_section_key, section} ->
-        section
-        |> Map.get("properties")
-        |> Enum.map(fn {_cmd_name, cmd} ->
-          [
-            cmd["properties"]["request"],
-            cmd["properties"]["response"]
-          ]
-        end)
-      end)
-      |> List.flatten
-      |> Enum.reject(&(&1 == nil))
-      |> Enum.map(fn json_def ->
-        schema = JsonXema.new(json_def)
-        command = get_in(json_def, ~w(properties command const))
+    "priv/schema_v1/*/*/*.json"
+      |> Path.wildcard
+      |> Enum.map(fn file_path ->
+        contents = file_path
+          |> File.read!()
+          |> Jason.decode!()
+
+        command = if Map.has_key?(contents, "anyOf") do
+          load_anyOf(contents)
+        else
+          load_basic(contents)
+        end
+
+        schema = JsonXema.new(contents)
 
         ConCache.put(:tachyon_schemas, command, schema)
-        json_def["$id"]
+
+        command
       end)
+  end
+
+  defp load_basic(contents) do
+    contents["properties"]["command"]["const"]
+  end
+
+  defp load_anyOf(contents) do
+    contents["anyOf"]
+      |> Enum.find(fn %{"properties" => properties} ->
+        properties["status"]["const"] == "success"
+      end)
+      |> get_in(["properties", "command", "const"])
   end
 end

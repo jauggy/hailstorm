@@ -21,7 +21,12 @@ defmodule Hailstorm.Tests.ErrorTest do
     assert Enum.count(messages) == 1
     resp = hd(messages)
 
-    assert resp["data"] == %{"reason" => "No command supplied"}
+    assert resp == %{
+      "command" => "system/error/response",
+      "reason" => "No command supplied",
+      "status" => "failure"
+    }
+
 
     # Now a dodgy command in general
     cmd = %{
@@ -36,7 +41,11 @@ defmodule Hailstorm.Tests.ErrorTest do
     assert Enum.count(messages) == 1
     resp = hd(messages)
 
-    assert resp["data"] == %{"reason" => "No command of 'bad command name'"}
+    assert resp == %{
+      "command" => "system/error/response",
+      "reason" => "No command of 'bad command name'",
+      "status" => "failure"
+    }
 
     # Force an error
     exit_message = tachyon_send_and_receive(client, %{
@@ -56,7 +65,7 @@ defmodule Hailstorm.Tests.ErrorTest do
 
     # exit_message = tachyon_send_and_receive(client, %{
     #   "command" => "force_error",
-    #   "data" => %{"command" => "account/who_am_i/response"}
+    #   "data" => %{"command" => "account/whoAmI/response"}
     # })
     # |> Enum.reverse()
     # |> hd
@@ -72,21 +81,27 @@ defmodule Hailstorm.Tests.ErrorTest do
     cmd = %{
       "command" => "disconnect"
     }
+
     messages = tachyon_send_and_receive(client, cmd, fn
       %{"command" => "disconnect"} -> true
       _ -> false
     end)
 
-    assert Enum.count(messages) == 1
-    resp = hd(messages)
-    assert resp == %{"command" => "disconnect", "data" => %{"result" => "disconnected"}}
+    # We don't always get a response when disconnecting, we need to handle both
+    if Enum.count(messages) == 1 do
+      resp = hd(messages)
+      assert resp == %{"command" => "disconnect", "data" => %{"result" => "disconnected"}, "status" => "success"}
+    else
+      assert Enum.empty?(messages)
+    end
 
     refute Process.alive?(elem(client, 0))
   end
 
   test "test validate! function" do
     good_data = %{
-      "command" => "account/who_am_i/response",
+      "command" => "account/whoAmI/response",
+      "status" => "success",
       "data" => %{
         "battle_status" => %{
           "away" => false,
@@ -119,7 +134,7 @@ defmodule Hailstorm.Tests.ErrorTest do
     assert validate!(good_data)
 
     bad_data = %{
-      "command" => "account/who_am_i/response",
+      "command" => "account/whoAmI/response",
       "data" => %{
         "clan_id" => nil,
         "friend_requests" => [],

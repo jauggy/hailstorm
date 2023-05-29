@@ -12,8 +12,9 @@ defmodule Hailstorm.TachyonHelper do
   def get_websocket_url(token_value) do
     query = URI.encode_query(%{
       "token" => token_value,
-      "client_hash" => "HailstormHash",
-      "client_name" => "Hailstorm"
+      "application_hash" => "HailstormHash",
+      "application_version" => "1.0.0",
+      "application_name" => "Hailstorm"
     })
     Application.get_env(:hailstorm, Hailstorm)[:websocket_url] <> "?#{query}"
   end
@@ -210,6 +211,12 @@ defmodule Hailstorm.TachyonHelper do
 
   @spec validate!(map) :: :ok
   def validate!(%{"command" => command} = object) do
+    # IO.puts "Object: "
+    # IO.puts Jason.encode!(object, pretty: true)
+    # IO.inspect command, label: "Command "
+    # IO.inspect get_schema(command), label: "Schema "
+    # IO.puts ""
+
     schema = get_schema(command)
     JsonXema.validate!(schema, object)
   end
@@ -222,12 +229,12 @@ defmodule Hailstorm.TachyonHelper do
   @spec whoami({pid, pid}) :: map()
   def whoami(client) do
     cmd_data = %{
-      "command" => "account/who_am_i/request",
+      "command" => "account/whoAmI/request",
       "data" => %{}
     }
 
     messages = tachyon_send_and_receive(client, cmd_data, fn
-      %{"command" => "account/who_am_i/response"} -> true
+      %{"command" => "account/whoAmI/response"} -> true
       _ -> false
     end)
 
@@ -258,12 +265,12 @@ defmodule Hailstorm.TachyonHelper do
     }, data)
 
     cmd_data = %{
-      "command" => "lobby_host/create/request",
+      "command" => "lobbyHost/create/request",
       "data" => lobby_data
     }
 
     tachyon_send_and_receive(client, cmd_data, fn
-      %{"command" => "lobby_host/create/response"} -> true
+      %{"command" => "lobbyHost/create/response"} -> true
       _ -> false
     end)
     |> hd

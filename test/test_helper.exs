@@ -14,7 +14,10 @@ case HTTPoison.post(url, "", [{"Content-Type", "application/json"}]) do
       raise "Server responded but is not up, cannot start tests"
     end
 
-  _resp ->
+  resp ->
+    IO.puts ""
+    IO.inspect resp
+    IO.puts ""
     raise "Server not up, cannot start tests"
 end
 

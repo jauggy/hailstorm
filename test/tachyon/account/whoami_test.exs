@@ -12,12 +12,12 @@ defmodule Hailstorm.Account.WhoamiTest do
   test "test" do
     {:ok, client} = new_connection(@whoami_user_params)
     cmd_data = %{
-      "command" => "account/who_am_i/request",
+      "command" => "account/whoAmI/request",
       "data" => %{}
     }
 
     messages = tachyon_send_and_receive(client, cmd_data, fn
-      %{"command" => "account/who_am_i/response"} -> true
+      %{"command" => "account/whoAmI/response"} -> true
       _ -> false
     end)
 

@@ -6,7 +6,7 @@ defmodule Tachyon.Telemetry.PropertiesTest do
   use Hailstorm.TachyonHelper
 
   test "property" do
-    {:ok, user} = new_connection()
+    {:ok, client} = new_connection()
 
     cmd = %{
       "command" => "telemetry/property/request",
