@@ -32,3 +32,5 @@ zignore/*
 *.sublime-workspace
 *.code-workspace
 
+# Secrets
+/config/*.secret.exs
