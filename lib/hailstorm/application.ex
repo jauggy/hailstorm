@@ -47,29 +47,18 @@ defmodule Hailstorm.Application do
           |> File.read!()
           |> Jason.decode!()
 
-        command = if Map.has_key?(contents, "anyOf") do
-          load_anyOf(contents)
-        else
-          load_basic(contents)
-        end
+        command = file_path
+          |> Path.split()
+          |> Enum.reverse
+          |> Enum.take(3)
+          |> Enum.reverse
+          |> Enum.join("/")
+          |> String.replace(".json", "")
 
         schema = JsonXema.new(contents)
 
         ConCache.put(:tachyon_schemas, command, schema)
-
         command
       end)
-  end
-
-  defp load_basic(contents) do
-    contents["properties"]["command"]["const"]
-  end
-
-  defp load_anyOf(contents) do
-    contents["anyOf"]
-      |> Enum.find(fn %{"properties" => properties} ->
-        properties["status"]["const"] == "success"
-      end)
-      |> get_in(["properties", "command", "const"])
   end
 end
