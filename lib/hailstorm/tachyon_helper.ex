@@ -162,6 +162,27 @@ defmodule Hailstorm.TachyonHelper do
       |> Enum.filter(filter_func)
   end
 
+  @spec tachyon_receive({pid, pid}) :: any
+  def tachyon_receive({_ws, _ls} = client) do
+    tachyon_receive(client, (fn _ -> true end), [])
+  end
+
+  @spec tachyon_receive({pid, pid}, function, list) :: any
+  def tachyon_receive({_ws, _ls} = client, filter_func, opts \\ []) do
+    pop_messages(client, opts[:timeout] || 500)
+      |> Enum.map(fn
+        %{
+          "command" => "system/error/response",
+          "status" => "failure",
+          "reason" => "No command of '" <> _
+        } = m ->
+          raise "Got error message: #{m["reason"]}"
+        m ->
+          m
+      end)
+      |> Enum.filter(filter_func)
+  end
+
   @spec tachyon_send({pid, pid}, map) :: :ok
   @spec tachyon_send({pid, pid}, map, list) :: :ok
   def tachyon_send({ws, _}, data, _metadata \\ []) do
@@ -299,6 +320,9 @@ defmodule Hailstorm.TachyonHelper do
         tachyon_send_and_receive: 2,
         tachyon_send_and_receive: 3,
         tachyon_send_and_receive: 4,
+        tachyon_receive: 1,
+        tachyon_receive: 2,
+        tachyon_receive: 3,
         read_messages: 1,
         read_messages: 2,
         pop_messages: 1,
