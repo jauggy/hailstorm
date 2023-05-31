@@ -34,19 +34,9 @@ defmodule Hailstorm.Tachyon.SchemaErrorTest do
       "command" => "bad command name",
       "data" => %{}
     }
-    messages = tachyon_send_and_receive(client, cmd, fn
-      %{"command" => "system/error/response"} -> true
-      _ -> false
+    assert_raise(RuntimeError, fn ->
+      tachyon_send_and_receive(client, cmd)
     end)
-
-    assert Enum.count(messages) == 1
-    resp = hd(messages)
-
-    assert resp == %{
-      "command" => "system/error/response",
-      "reason" => "No command of 'bad command name'",
-      "status" => "failure"
-    }
 
     # Force an error
     exit_message = tachyon_send_and_receive(client, %{

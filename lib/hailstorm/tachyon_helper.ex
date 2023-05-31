@@ -149,6 +149,16 @@ defmodule Hailstorm.TachyonHelper do
     WebSockex.send_frame(ws, {:text, json})
 
     pop_messages(client, opts[:timeout] || 500)
+      |> Enum.map(fn
+        %{
+          "command" => "system/error/response",
+          "status" => "failure",
+          "reason" => "No command of '" <> _
+        } = m ->
+          raise "Got error message: #{m["reason"]}"
+        m ->
+          m
+      end)
       |> Enum.filter(filter_func)
   end
 
