@@ -22,7 +22,7 @@ defmodule Hailstorm.TachyonHelper do
   @spec get_password() :: String.t()
   def get_password(), do: Application.get_env(:hailstorm, Hailstorm)[:password]
 
-  defp cleanup_params(params) do
+  def cleanup_params(params) do
     params = params || %{}
     name = Map.get(params, :name, ExULID.ULID.generate()) |> to_string
     email = Map.get(params, :email, name) <> "@hailstorm_tachyon"
@@ -60,7 +60,7 @@ defmodule Hailstorm.TachyonHelper do
   end
 
   @spec create_user(map()) :: :ok | {:error, String.t()}
-  defp create_user(params) do
+  def create_user(params) do
     url = [
       Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
       "teiserver/api/hailstorm/create_user"
@@ -86,7 +86,7 @@ defmodule Hailstorm.TachyonHelper do
   end
 
   @spec get_token(map()) :: {:ok, String.t()} | {:error, String.t()}
-  defp get_token(params) do
+  def get_token(params) do
     url = [
       Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
       "teiserver/api/request_token"
@@ -112,7 +112,7 @@ defmodule Hailstorm.TachyonHelper do
   end
 
   @spec update_user(String.t(), map()) :: :ok | {:error, String.t()}
-  defp update_user(email, params) do
+  def update_user(email, params) do
     url = [
       Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
       "teiserver/api/hailstorm/ts_update_user"

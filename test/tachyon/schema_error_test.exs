@@ -1,6 +1,7 @@
-defmodule Hailstorm.Tests.ErrorTest do
+defmodule Hailstorm.Tachyon.SchemaErrorTest do
   @moduledoc """
-  Tests the Ping command
+  Tests various ways of mis-using a good connection and ensures
+  we fail correctly
   """
   use ExUnit.Case, async: true
   use Hailstorm.TachyonHelper
