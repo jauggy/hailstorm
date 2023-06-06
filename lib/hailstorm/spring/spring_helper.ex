@@ -61,8 +61,6 @@ defmodule Hailstorm.SpringHelper do
 
     # Now login
     cmd = "LOGIN #{name} password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
-    # "hs_springload_0 password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
-    # "LOGIN hs_springload_0 password 0 * Hailstorm\t1993717506 0d04a635e200f308\tb sp\n"
 
     spring_send(socket, cmd)
     response = socket
@@ -176,6 +174,26 @@ defmodule Hailstorm.SpringHelper do
     case spring_recv(socket) do
       "ACCEPTED " <> _username ->
         :ok
+
+      "QUEUED" <> _ ->
+        login_queue(socket)
+
+      resp ->
+        {:error, "No reply when performing authentication: #{inspect resp}"}
+    end
+  end
+
+  @spec login_socket(sslsocket(), String.t()) :: :ok | {:error, String.t()}
+  defp login_queue(socket) do
+    :timer.sleep(500)
+    spring_send(socket, "c.auth.login_queue_heartbeat")
+
+    case spring_recv(socket) do
+      "ACCEPTED " <> _username ->
+        :ok
+
+      "QUEUED" <> _ ->
+        login_queue(socket)
 
       resp ->
         {:error, "No reply when performing authentication: #{inspect resp}"}
