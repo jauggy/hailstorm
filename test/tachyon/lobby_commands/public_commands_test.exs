@@ -1,4 +1,4 @@
-defmodule Tachyon.ConsulCommands.PublicCommandsTest do
+defmodule Tachyon.LobbyCommands.PublicCommandsTest do
   @moduledoc """
   Tests consul commands
   """
