@@ -103,8 +103,19 @@ defmodule Hailstorm.TachyonHelper do
       "teiserver/api/request_token"
     ] |> Enum.join("/")
 
+    unverified = Map.get(params, "unverified", false)
+
+    roles = if unverified do
+      params["roles"] || []
+    else
+      ["Verified" | params["roles"] || []] |> Enum.uniq
+    end
+
     data = params
-      |> Map.put("password", get_password())
+      |> Map.merge(%{
+        "password" => get_password(),
+        "roles" => roles
+      })
       |> Jason.encode!
 
     result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do

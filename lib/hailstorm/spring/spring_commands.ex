@@ -91,8 +91,8 @@ defmodule Hailstorm.Spring.Commands do
     {_cmd, args} = messages
       |> Enum.filter(fn {cmd, args} ->
         cmd == "BATTLEOPENED"
-        and Enum.at(args, 3) == "bad_command_host_hailstorm"
-        and Enum.at(args, 13) == "consul-command-test-bad-commands"
+        or Enum.at(args, 3) == "bad_command_host_hailstorm"
+        or Enum.at(args, 13) == "consul-command-test-bad-commands"
       end)
       |> hd
 

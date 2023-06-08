@@ -5,6 +5,7 @@ defmodule Spring.Consul.CommandsTest do
   test "bad-commands" do
     host = new_connection(%{
       name: "bad_command_host",
+      roles: ["Bot"],
       update: %{
         bot: true
       }

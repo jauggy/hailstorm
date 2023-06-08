@@ -18,7 +18,7 @@ defmodule Spring.Protocol.OpenBattleTest do
 
     case openbattleline do
       [lobby_id_str] ->
-        [opened_id] = battleopenedline
+        [opened_id | _] = battleopenedline
 
         assert opened_id == lobby_id_str
       _ ->
