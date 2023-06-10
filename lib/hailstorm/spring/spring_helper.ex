@@ -41,7 +41,10 @@ defmodule Hailstorm.SpringHelper do
       spring_recv_until(socket)
       socket
     else
-      failure -> {:error, failure}
+      {:error, reason} ->
+        {:error, reason}
+      failure ->
+        {:error, failure}
     end
   end
 
@@ -107,19 +110,21 @@ defmodule Hailstorm.SpringHelper do
     roles = if unverified do
       params["roles"] || []
     else
-      ["Verified" | params["roles"] || []] |> Enum.uniq
+      ["Verified" | params[:roles] || []] |> Enum.uniq
     end
 
     data = params
       |> Map.merge(%{
-        "password" => get_password(),
-        "roles" => roles
+        password: get_password(),
+        roles: roles
       })
       |> Jason.encode!
 
     result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
-      {:ok, resp} ->
+      {:ok, %{status_code: 201} = resp} ->
         resp.body |> Jason.decode!
+      {_, resp} ->
+        %{"result" => "failure", "reason" => "bad request (code: #{resp.status_code})"}
     end
 
     case result do

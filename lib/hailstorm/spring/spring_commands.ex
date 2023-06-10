@@ -119,8 +119,8 @@ defmodule Hailstorm.Spring.Commands do
     case joined_battle_line do
       [^lobby_id_str, ^username, "script_password"] ->
         true
-      _ ->
-        raise "Battle join failed"
+      v ->
+        raise "Battle join failed: #{inspect v}"
     end
   end
 end

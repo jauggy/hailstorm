@@ -76,8 +76,8 @@ defmodule Hailstorm.TachyonHelper do
 
     data = params
       |> Map.merge(%{
-        "password" => get_password(),
-        "roles" => roles
+        password: get_password(),
+        roles: roles
       })
       |> Jason.encode!
 
@@ -331,7 +331,7 @@ defmodule Hailstorm.TachyonHelper do
   end
 
   @spec join_lobby({pid, pid}, non_neg_integer()) :: map
-  def join_lobby(client, lobby_id) do
+  def join_lobby(_client, _lobby_id) do
     %{}
   end
 
