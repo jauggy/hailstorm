@@ -127,7 +127,7 @@ defmodule Hailstorm.TachyonHelper do
 
     case result do
       %{"result" => "failure", "reason" => reason} ->
-        {:error, "Error getting user token for '#{params.email}', because #{reason}"}
+        {:error, "Error requesting user token for '#{params.email}', because #{reason}"}
       %{"result" => "success", "token_value" => token_value} ->
         {:ok, token_value}
     end
@@ -175,7 +175,6 @@ defmodule Hailstorm.TachyonHelper do
         %{
           "command" => "system/error/response",
           "status" => "failure",
-          "reason" => "No command of '" <> _
         } = m ->
           raise "Got error message: #{m["reason"]}"
         m ->

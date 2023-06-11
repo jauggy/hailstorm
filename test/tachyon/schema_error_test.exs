@@ -14,10 +14,12 @@ defmodule Hailstorm.Tachyon.SchemaErrorTest do
       "cmd" => "no command present",
       "data" => %{}
     }
-    messages = tachyon_send_and_receive(client, cmd, fn
-      %{"command" => "system/error/response"} -> true
-      _ -> false
-    end)
+    tachyon_send(client, cmd)
+    messages = tachyon_receive(client)
+      |> Enum.filter(fn
+        %{"command" => "system/error/response"} -> true
+        _ -> false
+      end)
 
     assert Enum.count(messages) == 1
     resp = hd(messages)
@@ -39,14 +41,28 @@ defmodule Hailstorm.Tachyon.SchemaErrorTest do
     end)
 
     # Force an error
-    exit_message = tachyon_send_and_receive(client, %{
+    assert Process.alive?(elem(client, 0))
+    cmd = %{
       "command" => "force_error",
       "data" => %{}
-    })
-    |> Enum.reverse()
-    |> hd
+    }
 
-    assert exit_message == {:ws_terminate, {:remote, 1011, ""}}
+    tachyon_send(client, cmd)
+    messages = tachyon_receive(client)
+      |> Enum.filter(fn
+        %{"command" => "system/error/response"} -> true
+        _ -> false
+      end)
+
+    assert Enum.count(messages) == 1
+    resp = hd(messages)
+
+    assert resp == %{
+      "command" => "system/error/response",
+      "reason" => "Internal server error for command force_error",
+      "status" => "failure"
+    }
+
     refute Process.alive?(elem(client, 0))
 
     # TODO: Fix validation of messages on server, until then this won't work

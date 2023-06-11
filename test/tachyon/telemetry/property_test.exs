@@ -11,8 +11,9 @@ defmodule Tachyon.Telemetry.PropertiesTest do
     cmd = %{
       "command" => "telemetry/property/request",
       "data" => %{
-        "key" => "property-key",
-        "value" => "property-value"
+        "type" => "property-key",
+        "value" => "property-value",
+        "hash" => "123456"
       }
     }
     messages = tachyon_send_and_receive(client, cmd, fn
@@ -23,8 +24,11 @@ defmodule Tachyon.Telemetry.PropertiesTest do
     assert Enum.count(messages) == 1
     response = hd(messages)
 
-    assert response["data"]["result"] == "success"
-    assert response["data"]["key"] == "property-type"
+    assert response == %{
+      "command" => "telemetry/property/response",
+      "data" => %{},
+      "status" => "success"
+    }
     validate!(response)
   end
 end

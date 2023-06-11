@@ -26,8 +26,11 @@ defmodule Tachyon.Telemetry.EventTest do
     assert Enum.count(messages) == 1
     response = hd(messages)
 
-    assert response["data"]["result"] == "success"
-    assert response["data"]["type"] == "event-type"
+    assert response == %{
+      "command" => "telemetry/event/response",
+      "data" => %{},
+      "status" => "success"
+    }
     validate!(response)
   end
 end
