@@ -90,7 +90,7 @@ defmodule Hailstorm.Spring.Commands do
 
     {_cmd, args} = messages
       |> Enum.filter(fn {cmd, args} ->
-        cmd == "BATTLEOPENED"
+        cmd == "OPENBATTLE"
         or Enum.at(args, 3) == "bad_command_host_hailstorm"
         or Enum.at(args, 13) == "consul-command-test-bad-commands"
       end)
@@ -108,17 +108,27 @@ defmodule Hailstorm.Spring.Commands do
     spring_send(user_socket, "JOINBATTLE #{lobby_id} empty script_password")
     spring_send(host_socket, "JOINBATTLEACCEPT #{username}")
 
-    joined_battle_line = user_socket
+    result_map = user_socket
       |> spring_recv_until
       |> split_commands
       |> Map.new
+
+    joined_battle_line = result_map
       |> Map.get("JOINEDBATTLE")
 
-    lobby_id_str = to_string(lobby_id)
-
     case joined_battle_line do
-      [^lobby_id_str, ^username, "script_password"] ->
-        true
+      [lobby_id_str, ^username, "script_password"] ->
+        if lobby_id_str == to_string(lobby_id) do
+          true
+        else
+          raise "Battle join failed: Expected to join #{lobby_id} but got #{lobby_id_str}\n#{inspect result_map}"
+        end
+      [lobby_id_str, ^username] ->
+        if lobby_id_str == to_string(lobby_id) do
+          true
+        else
+          raise "Battle join failed: Expected to join #{lobby_id} but got #{lobby_id_str}\n#{inspect result_map}"
+        end
       v ->
         raise "Battle join failed: #{inspect v}"
     end
