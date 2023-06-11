@@ -26,11 +26,18 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
 
     assert Enum.count(messages) == 1
     response = hd(messages)
-
-    assert response["data"]["result"] == "waiting_on_host"
+    assert response == %{
+      "command" => "lobby/join/response",
+      "data" => %{
+        "result" => "waiting_on_host"
+      },
+      "status" => "success"
+    }
     validate!(response)
 
     :timer.sleep(1_000)
+
+    # Accept the user
 
     assert true
   end
