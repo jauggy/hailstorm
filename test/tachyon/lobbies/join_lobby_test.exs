@@ -78,12 +78,19 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
 
     # The user should hear they've been added to the lobby
     client_messages = tachyon_receive(client, fn
+      %{"command" => "lobby/joined/response"} -> true
+      %{"command" => "user/UpdatedUserClient/response"} -> true
       %{"command" => "lobby/receivedJoinRequestResponse/response"} -> true
-      _ -> true
+      _ -> false
     end)
 
-    assert Enum.count(client_messages) == 1
-    response = hd(client_messages)
+    message_map = client_messages
+      |> Map.new(fn %{"command" => command} = m ->
+        {command, m}
+      end)
+
+    assert Enum.count(client_messages) == 3
+    response = message_map["lobby/receivedJoinRequestResponse/response"]
     assert response == %{
       "command" => "lobby/receivedJoinRequestResponse/response",
       "data" => %{
@@ -92,6 +99,12 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
       },
       "status" => "success"
     }
+
+    response = message_map["lobby/joined/response"]
+    assert response["data"]["lobby_id"] == lobby["id"]
+
+    response = message_map["user/UpdatedUserClient/response"]
+    assert response["data"]["userClient"]["id"] == client_id
   end
 
   test "user join - decline" do
