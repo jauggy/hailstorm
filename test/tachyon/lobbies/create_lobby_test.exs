@@ -97,6 +97,7 @@ defmodule Hailstorm.Lobbies.CreateLobbyTest do
 
     assert response["data"]["founder_name"] == "create_lobby_hailstorm"
     assert response["data"]["founder_id"] == userid
+    lobby_id = response["data"]["id"]
     validate!(response)
 
     # Ensure the lobby is there if we list lobbies
@@ -112,10 +113,12 @@ defmodule Hailstorm.Lobbies.CreateLobbyTest do
     assert Enum.count(messages) == 1
     response = hd(messages)
 
-    lobbies = response["data"]["lobbies"]
-    assert Enum.count(lobbies) == 1
+    our_lobby = response["data"]["lobbies"]
+      |> Enum.filter(fn %{"id" => id} ->
+        id == lobby_id
+      end)
+      |> hd
 
-    lobby = hd(lobbies)
-    assert lobby["founder_id"] == userid
+    assert our_lobby["founder_id"] == userid
   end
 end

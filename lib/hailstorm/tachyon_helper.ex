@@ -329,9 +329,71 @@ defmodule Hailstorm.TachyonHelper do
     |> Map.get("data")
   end
 
-  @spec join_lobby({pid, pid}, non_neg_integer()) :: map
-  def join_lobby(_client, _lobby_id) do
-    %{}
+  @spec join_lobby({pid, pid}, {pid, pid}, non_neg_integer()) :: map
+  def join_lobby(client, host, lobby_id) do
+    client_id = whoami(client)["id"]
+
+    # Join request
+    cmd = %{
+      "command" => "lobby/join/request",
+      "data" => %{
+        "lobby_id" => lobby_id
+      }
+    }
+    client_messages = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "lobby/join/response"} -> true
+      _ -> false
+    end)
+
+    response = hd(client_messages)
+    if response["data"]["result"] != "waiting_on_host" do
+      raise "Tried joining lobby but did not get back waiting_on_host response"
+    end
+
+    # Host accept
+    cmd = %{
+      "command" => "lobbyHost/respondToJoinRequest/request",
+      "data" => %{
+        "userid" => client_id,
+        "response" => "accept"
+      }
+    }
+    tachyon_send_and_receive(host, cmd, fn
+      _ -> false
+    end)
+
+    # And now the client should be a member
+    client_messages = tachyon_receive(client, fn
+      %{"command" => "lobby/joined/response"} -> true
+      %{"command" => "user/UpdatedUserClient/response"} -> true
+      %{"command" => "lobby/receivedJoinRequestResponse/response"} -> true
+      _ -> false
+    end)
+
+    message_map = client_messages
+      |> Map.new(fn %{"command" => command} = m ->
+        {command, m}
+      end)
+
+    # The JoinRequest response should be here
+    response = message_map["lobby/receivedJoinRequestResponse/response"]
+    if response["data"]["result"] != "accept" do
+      raise "Tried joining lobby but did not get host accept response"
+    end
+
+    # We should also be told we've joined a lobby
+    response = message_map["lobby/joined/response"]
+    if response["data"]["lobby_id"] != lobby_id do
+      raise "Tried joining lobby but got wrong lobby (expected: #{lobby_id}, got: #{response["data"]["lobby_id"]})"
+    end
+
+    # And our client is now updated
+    response = message_map["user/UpdatedUserClient/response"]
+    if response["data"]["userClient"]["id"] != client_id do
+      raise "Tried joining lobby but did not get a user client update"
+    end
+
+    response["data"]["userClient"]
   end
 
   defmacro __using__(_opts) do
@@ -356,7 +418,7 @@ defmodule Hailstorm.TachyonHelper do
         whoami: 1,
         create_lobby: 1,
         create_lobby: 2,
-        join_lobby: 2
+        join_lobby: 3
       ]
       alias Hailstorm.TachyonHelper
       alias Tachyon
