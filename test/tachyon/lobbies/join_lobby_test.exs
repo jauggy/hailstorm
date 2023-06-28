@@ -10,8 +10,8 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     lobby = create_lobby(host)
     # host_id = whoami(host) |> Map.get(:id)
 
-    {:ok, client} = new_connection()
-    client_id = whoami(client)["id"]
+    {:ok, client1} = new_connection()
+    client1_id = whoami(client1)["id"]
 
     cmd = %{
       "command" => "lobby/join/request",
@@ -19,13 +19,13 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
         "lobby_id" => lobby["id"]
       }
     }
-    client_messages = tachyon_send_and_receive(client, cmd, fn
+    client1_messages = tachyon_send_and_receive(client1, cmd, fn
       %{"command" => "lobby/join/response"} -> true
       _ -> false
     end)
 
-    assert Enum.count(client_messages) == 1
-    response = hd(client_messages)
+    assert Enum.count(client1_messages) == 1
+    response = hd(client1_messages)
     assert response == %{
       "command" => "lobby/join/response",
       "data" => %{
@@ -46,7 +46,7 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     assert response == %{
       "command" => "lobbyHost/joinRequest/response",
       "data" => %{
-        "userid" => client_id,
+        "userid" => client1_id,
         "lobby_id" => lobby["id"],
       },
       "status" => "success"
@@ -57,7 +57,7 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     cmd = %{
       "command" => "lobbyHost/respondToJoinRequest/request",
       "data" => %{
-        "userid" => client_id,
+        "userid" => client1_id,
         "response" => "accept"
       }
     }
@@ -77,19 +77,19 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     # validate!(response)
 
     # The user should hear they've been added to the lobby
-    client_messages = tachyon_receive(client, fn
+    client1_messages = tachyon_receive(client1, fn
       %{"command" => "lobby/joined/response"} -> true
       %{"command" => "user/UpdatedUserClient/response"} -> true
       %{"command" => "lobby/receivedJoinRequestResponse/response"} -> true
       _ -> false
     end)
 
-    message_map = client_messages
+    message_map = client1_messages
       |> Map.new(fn %{"command" => command} = m ->
         {command, m}
       end)
 
-    assert Enum.count(client_messages) == 3
+    assert Enum.count(client1_messages) == 3
     response = message_map["lobby/receivedJoinRequestResponse/response"]
     assert response == %{
       "command" => "lobby/receivedJoinRequestResponse/response",
@@ -104,7 +104,24 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     assert response["data"]["lobby_id"] == lobby["id"]
 
     response = message_map["user/UpdatedUserClient/response"]
-    assert response["data"]["userClient"]["id"] == client_id
+    assert response["data"]["userClient"]["id"] == client1_id
+
+    # What if a 2nd person joins?
+    empty_messages([client1])
+    {:ok, client2} = new_connection()
+    client2_id = whoami(client2)["id"]
+    _lobby_resp = join_lobby(client2, host, lobby["id"])
+
+    client1_messages = tachyon_receive(client1, fn
+      %{"command" => "lobby/addUserClient/response"} -> true
+      _ -> false
+    end)
+
+    assert Enum.count(client1_messages) == 1
+    response = hd(client1_messages)
+    assert response["data"]["lobby_id"] == lobby["id"]
+    assert response["data"]["UserClient"]["id"] == client2_id
+    assert get_in(response, ["data", "UserClient", "status", "lobby_id"]) == lobby["id"]
   end
 
   test "user join - decline" do

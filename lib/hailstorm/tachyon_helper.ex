@@ -204,6 +204,13 @@ defmodule Hailstorm.TachyonHelper do
       |> Enum.filter(filter_func)
   end
 
+  def empty_messages(listeners) do
+    listeners
+    |> Enum.each(fn {_, ls} ->
+      ListenerServer.pop(ls)
+    end)
+  end
+
   @spec tachyon_send({pid, pid}, map) :: :ok
   @spec tachyon_send({pid, pid}, map, list) :: :ok
   def tachyon_send({ws, _}, data, _metadata \\ []) do
@@ -393,6 +400,9 @@ defmodule Hailstorm.TachyonHelper do
       raise "Tried joining lobby but did not get a user client update"
     end
 
+    # Empty host messages
+    tachyon_receive(host)
+
     response["data"]["userClient"]
   end
 
@@ -413,6 +423,7 @@ defmodule Hailstorm.TachyonHelper do
         new_connection: 0,
         new_connection: 1,
         validate!: 1,
+        empty_messages: 1,
 
         # Commands
         whoami: 1,
