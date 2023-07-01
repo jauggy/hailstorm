@@ -122,9 +122,36 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     assert response["data"]["lobby_id"] == lobby["id"]
     assert response["data"]["UserClient"]["id"] == client2_id
     assert get_in(response, ["data", "UserClient", "status", "lobby_id"]) == lobby["id"]
+
+    # Now, leave the lobby
+    cmd = %{
+      "command" => "lobby/leave/request",
+      "data" => %{
+
+      }
+    }
+    client1_messages = tachyon_send_and_receive(client1, cmd, fn
+      %{"command" => "lobby/leave/response"} -> true
+      _ -> false
+    end)
+
+    assert Enum.count(client1_messages) == 1
+    response = hd(client1_messages)
+    assert response == %{
+      "command" => "lobby/join/response",
+      "data" => %{
+        "result" => "waiting_on_host"
+      },
+      "status" => "success"
+    }
+    validate!(response)
   end
 
   test "user join - decline" do
+
+  end
+
+  test "user joins while in another lobby" do
 
   end
 end
