@@ -396,8 +396,8 @@ defmodule Hailstorm.TachyonHelper do
 
     # And our client is now updated
     response = message_map["user/UpdatedUserClient/response"]
-    if response["data"]["userClient"]["id"] != client_id do
-      raise "Tried joining lobby but did not get a user client update"
+    if response["data"]["userClient"]["userid"] != client_id do
+      raise "Tried joining lobby but did not get a user client update (expected data.userid of #{client_id})"
     end
 
     # Empty host messages
@@ -431,7 +431,7 @@ defmodule Hailstorm.TachyonHelper do
         create_lobby: 2,
         join_lobby: 3
       ]
-      alias Hailstorm.TachyonHelper
+      alias Hailstorm.{TachyonHelper, WebHelper}
       alias Tachyon
     end
   end

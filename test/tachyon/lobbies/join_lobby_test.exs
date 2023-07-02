@@ -104,7 +104,7 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     assert response["data"]["lobby_id"] == lobby["id"]
 
     response = message_map["user/UpdatedUserClient/response"]
-    assert response["data"]["userClient"]["id"] == client1_id
+    assert response["data"]["userClient"]["userid"] == client1_id
 
     # What if a 2nd person joins?
     empty_messages([client1])

@@ -70,6 +70,55 @@ defmodule Hailstorm.WebHelper do
     end
   end
 
+  @spec set_user_rating(non_neg_integer(), String.t(), number(), number()) :: :ok | {:error, String.t()}
+  def set_user_rating(userid, rating_type, skill, uncertainty) do
+    url = [
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/update_user_rating"
+    ] |> Enum.join("/")
+
+    data = %{
+      userid: userid,
+      rating_type: rating_type,
+      skill: skill,
+      uncertainty: uncertainty
+    } |> Jason.encode!
+
+    result = case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
+      {:ok, %{status_code: 201}} ->
+        %{"result" => "success"}
+      {:ok, resp} ->
+        resp.body |> Jason.decode!
+    end
+
+    case result do
+      %{"result" => "failure"} ->
+        {:error, "Error updating user rating for '#{userid}'"}
+      %{"result" => "success"} ->
+        :ok
+    end
+  end
+
+  @spec get_server_state(String.t(), non_neg_integer()) :: {:ok, map()} | {:error, String.t()}
+  def get_server_state(server, id) do
+    url = [
+      Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
+      "teiserver/api/hailstorm/get_server_state"
+    ] |> Enum.join("/")
+
+    data = %{
+      server: server,
+      id: id
+    } |> Jason.encode!
+
+    case HTTPoison.post(url, data, [{"Content-Type", "application/json"}]) do
+      {:ok, %{status_code: 201} = resp} ->
+        {:ok, resp.body |> Jason.decode!}
+      {:ok, resp} ->
+        {:error, "Error updating getting server state for '#{server}/#{id}.\nResp body: #{resp.body}'"}
+    end
+  end
+
   defmacro __using__(_opts) do
     quote do
       import Hailstorm.WebHelper, only: [
