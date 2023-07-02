@@ -79,7 +79,7 @@ defmodule Tachyon.Communication.LobbyChatTest do
     # Assert the host saw the chat message
     host_messages = tachyon_receive(host, fn
       %{"command" => "lobbyChat/said/response"} -> true
-      _ -> true
+      _ -> false
     end)
 
     assert Enum.count(host_messages) == 1

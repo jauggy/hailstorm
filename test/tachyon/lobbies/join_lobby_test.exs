@@ -138,9 +138,45 @@ defmodule Tachyon.Lobbies.JoinLobbyTest do
     assert Enum.count(client1_messages) == 1
     response = hd(client1_messages)
     assert response == %{
-      "command" => "lobby/join/response",
+      "command" => "lobby/leave/response",
       "data" => %{
-        "result" => "waiting_on_host"
+
+      },
+      "status" => "success"
+    }
+    validate!(response)
+
+    # Ensure host saw it
+    host_messages = tachyon_receive(host, fn
+      %{"command" => "lobby/removeUserClient/response"} -> true
+      _ -> false
+    end)
+
+    assert Enum.count(host_messages) == 1
+    response = hd(host_messages)
+    assert response == %{
+      "command" => "lobby/removeUserClient/response",
+      "data" => %{
+        "lobby_id" => lobby["id"],
+        "userid" => client1_id
+      },
+      "status" => "success"
+    }
+    validate!(response)
+
+    # Ensure user2 saw it too
+    client2_messages = tachyon_receive(client2, fn
+      %{"command" => "lobby/removeUserClient/response"} -> true
+      _ -> false
+    end)
+
+    assert Enum.count(client2_messages) == 1
+    response = hd(client2_messages)
+    assert response == %{
+      "command" => "lobby/removeUserClient/response",
+      "data" => %{
+        "lobby_id" => lobby["id"],
+        "userid" => client1_id
       },
       "status" => "success"
     }
