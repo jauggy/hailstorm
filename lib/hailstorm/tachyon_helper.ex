@@ -170,6 +170,10 @@ defmodule Hailstorm.TachyonHelper do
     json = Jason.encode!(data)
     WebSockex.send_frame(ws, {:text, json})
 
+    if opts[:delay] do
+      :timer.sleep(opts[:delay])
+    end
+
     pop_messages(client, opts[:timeout] || 500)
       |> Enum.map(fn
         %{
@@ -406,6 +410,47 @@ defmodule Hailstorm.TachyonHelper do
     response["data"]["userClient"]
   end
 
+  @spec update_status({pid, pid}, map()) :: :ok
+  def update_status(client, status) do
+    cmd = %{
+      "command" => "lobby/updateStatus/request",
+      "data" => status
+    }
+    tachyon_send(client, cmd)
+
+    empty_messages([client])
+    :ok
+  end
+
+  @spec lobby_say({pid, pid}, String.t()) :: map()
+  def lobby_say(client, message) do
+    cmd = %{
+      "command" => "lobbyChat/say/request",
+      "data" => %{
+        "message" => message
+      }
+    }
+    said_responses = tachyon_send_and_receive(client, cmd, fn
+      %{"command" => "lobbyChat/said/response"} -> true
+      _ -> false
+    end)
+    |> Enum.group_by(fn %{"data" => %{"userid" => userid}} ->
+      userid
+    end)
+
+    said_responses
+  end
+
+  @spec disconnect({pid, pid}) :: :ok
+  def disconnect(client) do
+    cmd = %{
+      "command" => "disconnect"
+    }
+
+    tachyon_send(client, cmd)
+    :ok
+  end
+
   defmacro __using__(_opts) do
     quote do
       import Hailstorm.TachyonHelper, only: [
@@ -416,6 +461,7 @@ defmodule Hailstorm.TachyonHelper do
         tachyon_receive: 1,
         tachyon_receive: 2,
         tachyon_receive: 3,
+        disconnect: 1,
         read_messages: 1,
         read_messages: 2,
         pop_messages: 1,
@@ -429,7 +475,9 @@ defmodule Hailstorm.TachyonHelper do
         whoami: 1,
         create_lobby: 1,
         create_lobby: 2,
-        join_lobby: 3
+        join_lobby: 3,
+        update_status: 2,
+        lobby_say: 2,
       ]
       alias Hailstorm.{TachyonHelper, WebHelper}
       alias Tachyon
