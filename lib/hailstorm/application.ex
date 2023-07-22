@@ -13,6 +13,10 @@ defmodule Hailstorm.Application do
       {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.MonitorSupervisor},
       {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.SpringSupervisor},
       {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.TachyonSupervisor},
+
+      # Mix task related supervisors, only used if the mix task does anything
+      {DynamicSupervisor, strategy: :one_for_one, name: Hailstorm.AgentSupervisor},
+      {Registry, keys: :unique, name: Hailstorm.AgentRegistry}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

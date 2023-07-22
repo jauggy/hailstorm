@@ -1,4 +1,5 @@
 defmodule Hailstorm.TachyonHelper do
+  @moduledoc false
   require Logger
   alias Hailstorm.TachyonWsServer, as: Ws
   alias Hailstorm.ListenerServer

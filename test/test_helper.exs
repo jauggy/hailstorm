@@ -14,6 +14,9 @@ case HTTPoison.post(url, "", [{"Content-Type", "application/json"}]) do
       raise "Server responded but is not up, cannot start tests"
     end
 
+  {:error, %HTTPoison.Error{reason: :econnrefused, id: nil}} ->
+    raise "Server not up, cannot start tests"
+
   resp ->
     IO.puts ""
     IO.inspect resp

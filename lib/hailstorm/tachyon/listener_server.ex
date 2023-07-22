@@ -27,25 +27,44 @@ defmodule Hailstorm.ListenerServer do
 
   # Internal
   # GenServer callbacks
-  def handle_info({sys_message, reason}, state) do
-    {:noreply, [{sys_message, reason} | state]}
+  def handle_info({:set_forward, forward_pid}, state) do
+    {:noreply, %{state | forward_pid: forward_pid}}
   end
 
-  def handle_info(raw_json, state) do
+  def handle_info({sys_message, reason}, %{forward_pid: nil} = state) do
+    {:noreply, %{state | messages: [{sys_message, reason} | state.messages]}}
+  end
+
+  def handle_info(raw_json, %{forward_pid: nil} = state) do
     object = Jason.decode!(raw_json)
 
-    {:noreply, [object | state]}
+    {:noreply, %{state | messages: [object | state.messages]}}
+  end
+
+  # And now handle when we have a forwarding pid
+  def handle_info({sys_message, reason}, %{forward_pid: p} = state) do
+    send(p, {sys_message, reason})
+    {:noreply, state}
+  end
+
+  def handle_info(raw_json, %{forward_pid: p} = state) do
+    object = Jason.decode!(raw_json)
+    send(p, object)
+    {:noreply, state}
   end
 
   def handle_call(:pop, _from, state) do
-    {:reply, state, []}
+    {:reply, state.messages, %{state | messages: []}}
   end
 
   def handle_call(:read, _from, state) do
-    {:reply, state, state}
+    {:reply, state.messages, state}
   end
 
   def init(_opts) do
-    {:ok, []}
+    {:ok, %{
+      forward_pid: nil,
+      messages: []
+    }}
   end
 end
