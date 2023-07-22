@@ -35,15 +35,16 @@ defmodule Mix.Tasks.Hailstorm.FakeActivity do
     Logger.info("Starting agent connections")
 
     # start_agent(InOutAgent, "InOut1", %{})
-    start_agent(LobbyHostAgent, "LobbyHost1", %{
+    1..5
+    |> Enum.each(fn i ->
+      start_agent(LobbyHostAgent, "LobbyHost#{i}")
+    end)
 
-    })
-
-    :timer.sleep(100_000)
+    :timer.sleep(100_000_000)
   end
 
   defp check_site_is_up() do
-    # Before we run any tests lets ensure the test server is actually running
+    # Before we run any agents lets ensure the test server is actually running
     url = [
       Application.get_env(:hailstorm, Hailstorm)[:host_web_url],
       "teiserver/api/hailstorm/start"
@@ -54,17 +55,17 @@ defmodule Mix.Tasks.Hailstorm.FakeActivity do
         resp = Jason.decode!(body)
 
         if resp["up"] != true do
-          raise "Server responded but is not up, cannot start tests"
+          raise "Server responded but is not up, cannot start agents"
         end
 
       {:error, %HTTPoison.Error{reason: :econnrefused, id: nil}} ->
-        raise "Server not up, cannot start tests"
+        raise "Server not up, cannot start agents"
 
       resp ->
         IO.puts ""
         IO.inspect resp
         IO.puts ""
-        raise "Server not up, cannot start tests"
+        raise "Server not up, cannot start agents"
     end
   end
 

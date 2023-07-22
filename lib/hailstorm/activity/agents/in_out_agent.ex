@@ -30,6 +30,10 @@ defmodule Hailstorm.Activity.InOutAgent do
     {:noreply, %{state | agent: agent, state: :connected}}
   end
 
+  def handle_info(%{"command" => _}, state) do
+    {:noreply, state}
+  end
+
   @spec start_link(List.t()) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts[:data], [])

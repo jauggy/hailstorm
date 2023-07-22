@@ -47,6 +47,27 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
     {:noreply, state}
   end
 
+  def handle_info(%{"command" => "lobbyHost/create/response"} = msg, state) do
+    new_state = cond do
+      msg["status"] == "success" and msg["data"]["id"] > 1 ->
+        %{state |
+          lobby_id: msg["data"]["id"],
+          state: :hosting
+        }
+      true ->
+        raise "Error creating lobby: #{inspect msg}"
+
+        %{state |
+          state: :connected
+        }
+    end
+    {:noreply, new_state}
+  end
+
+  def handle_info(%{"command" => _}, state) do
+    {:noreply, state}
+  end
+
   @spec start_link(List.t()) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts[:data], [])
@@ -71,6 +92,7 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
        id: "LobbyHostAgent-#{name}",
        name: name,
        userid: userid,
+       lobby_id: nil,
        agent: agent,
        state: :connected
      }}
