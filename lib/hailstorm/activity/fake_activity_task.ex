@@ -35,7 +35,7 @@ defmodule Mix.Tasks.Hailstorm.FakeActivity do
     Logger.info("Starting agent connections")
 
     # start_agent(InOutAgent, "InOut1", %{})
-    1..5
+    1..1
     |> Enum.each(fn i ->
       start_agent(LobbyHostAgent, "LobbyHost#{i}")
     end)
@@ -73,18 +73,18 @@ defmodule Mix.Tasks.Hailstorm.FakeActivity do
     p_name = "#{name}-#{module}"
 
     {:ok, pid} =
-        DynamicSupervisor.start_child(Hailstorm.AgentSupervisor, {
-          module,
-          name: p_name,
-          data:
-            Map.merge(
-              %{
-                name: name,
-                p_name: p_name
-              },
-              params
-            )
-        })
+      DynamicSupervisor.start_child(Hailstorm.AgentSupervisor, {
+        module,
+        name: p_name,
+        data:
+          Map.merge(
+            %{
+              name: name,
+              p_name: p_name
+            },
+            params
+          )
+      })
 
     pid
   end

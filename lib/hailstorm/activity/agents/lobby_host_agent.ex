@@ -44,17 +44,25 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
   end
 
   def handle_info(:tick, state) do
+    {ws, ls} = state.agent
+    IO.puts ""
+    IO.inspect {Process.alive?(ws), Process.alive?(ls)}
+    IO.puts ""
+
     {:noreply, state}
   end
 
   def handle_info(%{"command" => "lobbyHost/create/response"} = msg, state) do
     new_state = cond do
-      msg["status"] == "success" and msg["data"]["id"] > 1 ->
+      msg["status"] == "success" and msg["data"]["id"] > 0 ->
         %{state |
           lobby_id: msg["data"]["id"],
           state: :hosting
         }
       true ->
+        IO.puts ""
+        IO.inspect msg
+        IO.puts ""
         raise "Error creating lobby: #{inspect msg}"
 
         %{state |
@@ -64,7 +72,10 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
     {:noreply, new_state}
   end
 
-  def handle_info(%{"command" => _}, state) do
+  def handle_info(%{"command" => _} = msg, state) do
+    IO.puts ""
+    IO.inspect msg
+    IO.puts ""
     {:noreply, state}
   end
 
@@ -79,7 +90,7 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
     {agent, userid} = start_agent(name)
 
     send(self(), :begin)
-    :timer.send_interval(30_000, :tick)
+    :timer.send_interval(3_000, :tick)
 
     Registry.register(
       Hailstorm.AgentRegistry,
