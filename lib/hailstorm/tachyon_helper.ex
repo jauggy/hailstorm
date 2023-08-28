@@ -302,9 +302,33 @@ defmodule Hailstorm.TachyonHelper do
       _ -> false
     end)
 
-    messages
-      |> hd()
-      |> Map.get("data")
+    case messages do
+      [] ->
+        %{}
+      [msg | _] ->
+        msg["data"]
+    end
+  end
+
+  @spec ping({pid, pid}) :: :ok
+  def ping(client) do
+    cmd_data = %{
+      "command" => "system/ping/request",
+      "data" => %{}
+    }
+
+    tachyon_send(client, cmd_data)
+  end
+
+  @spec ping({pid, pid}, non_neg_integer()) :: :ok
+  def ping(client, message_id) do
+    cmd_data = %{
+      "command" => "system/ping/request",
+      "data" => %{},
+      "message_id" => message_id
+    }
+
+    tachyon_send(client, cmd_data)
   end
 
   @spec create_lobby({pid, pid}) :: map
@@ -471,6 +495,8 @@ defmodule Hailstorm.TachyonHelper do
         new_connection: 1,
         validate!: 1,
         empty_messages: 1,
+        ping: 1,
+        ping: 2,
 
         # Commands
         whoami: 1,

@@ -44,13 +44,24 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
   end
 
   def handle_info(:tick, state) do
-    {ws, ls} = state.agent
-    IO.puts ""
-    IO.inspect {Process.alive?(ws), Process.alive?(ls)}
-    IO.puts ""
+    # {ws, ls} = state.agent
+    # IO.puts ""
+    # IO.inspect {Process.alive?(ws), Process.alive?(ls)}
+    # IO.puts ""
+    ping(state.agent, state.tick_num)
 
-    {:noreply, state}
+    {:noreply, %{state | tick_num: state.tick_num + 1}}
   end
+
+  def handle_info(%{"command" => "system/ping/" <> _}, state), do: {:noreply, state}
+  def handle_info(%{"command" => "account/whoAmI/" <> _}, state), do: {:noreply, state}
+
+  def handle_info(%{"command" => "user/UpdatedUserClient/" <> _}, state), do: {:noreply, state}
+
+  def handle_info(%{"command" => "lobbyChat/said/" <> _}, state), do: {:noreply, state}
+  def handle_info(%{"command" => "lobby/addUserClient/" <> _}, state), do: {:noreply, state}
+
+  def handle_info(%{"command" => "lobbyHost/respondToJoinRequest/" <> _}, state), do: {:noreply, state}
 
   def handle_info(%{"command" => "lobbyHost/create/response"} = msg, state) do
     new_state = cond do
@@ -70,6 +81,19 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
         }
     end
     {:noreply, new_state}
+  end
+
+  def handle_info(%{"command" => "lobbyHost/joinRequest/response", "data" => data}, state) do
+    cmd = %{
+      "command" => "lobbyHost/respondToJoinRequest/request",
+      "data" => %{
+        "userid" => data["userid"],
+        "response" => "accept"
+      }
+    }
+    tachyon_send(state.agent, cmd)
+
+    {:noreply, state}
   end
 
   def handle_info(%{"command" => _} = msg, state) do
@@ -105,7 +129,8 @@ defmodule Hailstorm.Activity.LobbyHostAgent do
        userid: userid,
        lobby_id: nil,
        agent: agent,
-       state: :connected
+       state: :connected,
+       tick_num: 1
      }}
   end
 end
