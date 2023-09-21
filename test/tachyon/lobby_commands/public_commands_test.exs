@@ -37,7 +37,7 @@ defmodule Tachyon.LobbyCommands.PublicCommandsTest do
     assert response == %{
       "command" => "communication/receivedDirectMessage/response",
       "data" => %{
-        "content" => "--------------------------- Lobby status ---------------------------\nStatus for battle ##{lobby["id"]}\nLocks: \nGatekeeper: default\nJoin queue:  (size: 0)\nCurrently 0 players\nTeam size and count are: 8 and 2\nNobody is bossed\nMaximum allowed number of players is 16 (Host = 16, Coordinator = 16)",
+        "content" => "--------------------------- Lobby status ---------------------------\nStatus for battle ##{lobby["id"]}\nLocks: \nGatekeeper: default\nJoin queue:  (size: 0)\nCurrently 0 players\nTeam size and count are: 8 and 2\nBalance algorithm is: loser_picks\nNobody is bossed\nMaximum allowed number of players is 16 (Host = 16, Coordinator = 16)",
         "sender_id" => 1
       },
       "status" => "success"

@@ -42,8 +42,8 @@ defmodule Tachyon.LobbyCommands.BalanceCommandsTest do
 
     {:ok, balance_state} = WebHelper.get_server_state("balance", lobby["id"])
     current_balance = balance_state["current_balance"]
-    assert current_balance["team_players"] == %{"1" => [], "2" => []}
-    assert current_balance["team_sizes"] == %{"1" => 0, "2" => 0}
+    assert current_balance["team_players"] == %{}
+    assert current_balance["team_sizes"] == %{}
 
     # Now put them on teams and call it again
     update_status(client1, %{"is_player" => true})
