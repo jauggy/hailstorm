@@ -10,7 +10,7 @@ defmodule Spring.Protocol.FriendTest do
       {socket4, user4}
     ] = 1..4
       |> Enum.map(fn i ->
-        name = "friends_#{i}"
+        name =   "friends_#{i}_" <> ExULID.ULID.generate()
         socket = new_connection(%{name: name})
 
         {socket, name <> "_hailstorm"}
@@ -36,7 +36,6 @@ defmodule Spring.Protocol.FriendTest do
 
     # Now accept
     Commands.accept_friend(socket2, user1)
-
     result = Commands.get_friend_names(socket1)
     assert result == [user2], "user1 has been accepted but user2 does not appear in user2's friend list\n\t#{inspect result}"
 
@@ -52,7 +51,7 @@ defmodule Spring.Protocol.FriendTest do
     Commands.accept_friend(socket4, user1)
 
     result = Commands.get_friend_names(socket1)
-    assert result == [user4, user2], "user4 has accepted user1 but hasn't appeared in user1's friend list\n\t#{result}"
+    assert result == [user2, user4], "user4 has accepted user1 but hasn't appeared in user1's friend list\n\t#{result}"
 
     result = Commands.get_friend_names(socket4)
     assert result == [user1], "user4 has accepted user1 but cannot see user1 in their friend list\n\t#{result}"
