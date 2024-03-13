@@ -13,6 +13,12 @@ mix test
 
 The final command `mix test` will run the unit tests which work as the integration tests for Teiserver. Note: You will need to have Teiserver running at the time to perform these tests.
 
+## Run specific tests
+```
+mix balance_test
+```
+Will run the balance tests only
+
 ## Development and contribution
 Pull requests are welcome, there is [documentation](docs) and in particular an [adding new tests](docs/adding_new_tests.md) document which may be of use.
 

@@ -7,7 +7,18 @@ defmodule Hailstorm.MixProject do
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases(),
+      preferred_cli_env: [balance_test: :test]
+    ]
+  end
+
+  # Define here tests that only target specific files
+  # Can run like: mix balance_test
+  # To add more you might also have to update preferred_cli_env in project above
+  defp aliases do
+    [
+      balance_test: "test test/balance/balance_test.exs"
     ]
   end
 
