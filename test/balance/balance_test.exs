@@ -146,7 +146,7 @@ defmodule Spring.Consul.CommandsTest do
     # Check that pros were picked first and noobs picked last. There should be one noob per team.
     assert messages
            |> String.contains?(
-             "Pro2_hailstorm (Rank: 6) picked for Team 1\nPro1_hailstorm (Rank: 1) picked for Team 2\nNoob2_hailstorm (Rank: 0) picked for Team 2\nNoob1_hailstorm (Rank: 0) picked for Team 1"
+             "Pro2_hailstorm (Chev: 7) picked for Team 1\nPro1_hailstorm (Chev: 2) picked for Team 2\nNoob2_hailstorm (Chev: 1) picked for Team 2\nNoob1_hailstorm (Chev: 1) picked for Team 1"
            )
   end
 end
