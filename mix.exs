@@ -18,7 +18,7 @@ defmodule Hailstorm.MixProject do
   # To add more you might also have to update preferred_cli_env in project above
   defp aliases do
     [
-      balance_test: "test test/balance/balance_test.exs"
+      balance_test: "test test/spring/balance/balance_test.exs"
     ]
   end
 
