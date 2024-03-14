@@ -1,4 +1,4 @@
-defmodule Spring.Consul.CommandsTest do
+defmodule Spring.Balance.BalanceTest do
   use ExUnit.Case, async: true
   use Hailstorm.SpringHelper
   require Logger
