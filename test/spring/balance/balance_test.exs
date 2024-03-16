@@ -89,11 +89,11 @@ defmodule Spring.Balance.BalanceTest do
         player_minutes: 0
       })
 
-    # Pros will have playtime of at least 5 hours
+    # Pros will have playtime of 6 hours or more. Minutes less than 60 are ignored due to rounding
     pro1_socket =
       new_connection(%{
         name: pro1,
-        player_minutes: 5 * 60
+        player_minutes: 6 * 60
       })
 
     pro2_socket =
@@ -146,7 +146,7 @@ defmodule Spring.Balance.BalanceTest do
     # Check that pros were picked first and noobs picked last. There should be one noob per team.
     assert messages
            |> String.contains?(
-             "Pro2_hailstorm (Chev: 7) picked for Team 1\nPro1_hailstorm (Chev: 2) picked for Team 2\nNoob2_hailstorm (Chev: 1) picked for Team 2\nNoob1_hailstorm (Chev: 1) picked for Team 1"
+             "Pro2_hailstorm (Chev: 5) picked for Team 1\nPro1_hailstorm (Chev: 2) picked for Team 2\nNoob2_hailstorm (Chev: 1) picked for Team 2\nNoob1_hailstorm (Chev: 1) picked for Team 1"
            )
 
    end
